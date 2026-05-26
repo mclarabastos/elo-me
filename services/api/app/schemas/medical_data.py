@@ -3,13 +3,13 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 
 
-class DoctorResponse(BaseModel):
+class MedicalDataResponse(BaseModel):
     id: str
-    name: str
-    crm: str
-    authorized: bool
-    crm_status: str
-    clinic_id: str
+    patient_id: str
+    category: str
+    label: str
+    data_hash: str
+    sensitivity: str
     created_at: datetime
     updated_at: datetime
 
