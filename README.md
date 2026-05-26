@@ -1,16 +1,32 @@
 # Elo.me
 
-Uma plataforma para gestão, compartilhamento e verificação de históricos médicos, conectando pacientes, médicos e clínicas em uma experiência digital segura e interoperável.
+Uma infraestrutura de prontuário médico portátil com consentimento verificável, privacidade seletiva e auditoria em blockchain — conectando pacientes, médicos e clínicas em uma experiência digital segura e interoperável.
+
+A plataforma permite que pacientes tenham controle total sobre seus dados médicos. Ao invés de clínicas armazenarem informações isoladas em diferentes sistemas, o paciente passa a possuir um histórico médico portátil, auditável e compartilhável de forma seletiva.
 
 A plataforma combina:
 
 - uma aplicação web para acesso e gestão de registros médicos;
 - uma área autenticada para pacientes, médicos e clínicas;
 - uma API para prontuários, permissões, usuários e integrações externas;
-- armazenamento de referências e metadados via IPFS/Pinata;
-- workflows Chainlink CRE para validação, automação e orquestração entre APIs externas, dados offchain e possíveis interações onchain.
+- armazenamento de documentos criptografados off-chain via IPFS/Pinata;
+- workflows Chainlink CRE para validação, automação e orquestração entre APIs externas, dados offchain e possíveis interações onchain;
+- Zero-Knowledge Proofs para compartilhamento seletivo de informações médicas sem exposição do prontuário completo.
 
 O projeto está estruturado como um monorepo com frontend em Next.js, backend em FastAPI, design system compartilhado, infraestrutura IPFS e workflows Chainlink CRE.
+
+---
+
+## Diferencial
+
+O principal diferencial do Elo.me é o **consentimento granular**. O paciente escolhe:
+
+- quais informações compartilhar;
+- com quem;
+- por quanto tempo;
+- para qual finalidade.
+
+Os documentos ficam armazenados off-chain e criptografados. A blockchain registra apenas hashes, permissões, consentimentos e logs de auditoria.
 
 ---
 
@@ -21,8 +37,9 @@ O projeto está estruturado como um monorepo com frontend em Next.js, backend em
 | **Frontend**         | Next.js App Router + React + TypeScript + Tailwind CSS + shadcn/ui                                  |
 | **API**              | FastAPI + Python, organizada por rotas versionadas e camada de serviços                             |
 | **Dados**            | PostgreSQL via SQLAlchemy                                                                           |
-| **Armazenamento**    | IPFS/Pinata para arquivos, CIDs e metadados associados aos registros                                |
+| **Armazenamento**    | IPFS/Pinata — documentos criptografados off-chain, CIDs e metadados associados aos registros        |
 | **Workflows Oracle** | Chainlink CRE para triggers, chamadas HTTP, secrets, validações offchain e possíveis interações EVM |
+| **Privacidade**      | Zero-Knowledge Proofs para compartilhamento seletivo sem exposição do prontuário completo           |
 | **Blockchain**       | Integração EVM opcional, conforme escopo final do MVP                                               |
 | **Deploy**           | Frontend em Vercel, backend FastAPI em serviço cloud compatível e banco PostgreSQL gerenciado       |
 
@@ -31,12 +48,14 @@ O projeto está estruturado como um monorepo com frontend em Next.js, backend em
 ## Domínios Principais
 
 - **Registros Médicos** — criação, organização, consulta e rastreabilidade de registros médicos
+- **Consentimento Granular** — controle do paciente sobre quais dados compartilhar, com quem, por quanto tempo e para qual finalidade
 - **Permissões de Acesso** — controle de acesso entre pacientes, médicos e clínicas
 - **Pacientes** — visualização de histórico médico e gestão de permissões
 - **Médicos** — acesso a pacientes autorizados e registros disponíveis
 - **Clínicas** — gestão de médicos, pacientes, documentos e configurações operacionais
-- **Armazenamento IPFS** — armazenamento ou referência de documentos e metadados verificáveis
-- **Chainlink CRE** — workflows para validação, automação e comunicação com dados externos
+- **Armazenamento IPFS** — documentos criptografados off-chain com referência por CID
+- **Chainlink CRE** — validação de clínicas, verificação de permissões, integridade de documentos e auditoria de eventos
+- **Zero-Knowledge Proofs** — comprovação seletiva de informações sem exposição do prontuário
 - **Design System** — tokens visuais, estilos globais e componentes reutilizáveis
 
 ---
@@ -54,6 +73,24 @@ O projeto está estruturado como um monorepo com frontend em Next.js, backend em
 ├── docs                      # Documentação técnica
 └── .github                   # Templates de PR e issues
 ```
+
+---
+
+## MVP do Hackathon
+
+O MVP demonstrará o fluxo completo de ponta a ponta:
+
+| Etapa | Ação                           |
+| ----- | ------------------------------ |
+| 1     | Paciente cria identidade       |
+| 2     | Clínica envia documento médico |
+| 3     | Documento é criptografado      |
+| 4     | Hash é registrado onchain      |
+| 5     | Nova clínica solicita acesso   |
+| 6     | Paciente aprova acesso parcial |
+| 7     | CRE valida permissões          |
+| 8     | Acesso é liberado              |
+| 9     | Evento é auditado onchain      |
 
 ---
 
@@ -242,7 +279,15 @@ CONTRACT_ADDRESS=
 
 ## Chainlink CRE
 
-Chainlink CRE será usado como camada de orquestração de workflows para operações que exigem dados externos, computação offchain, secrets, triggers, leituras/escritas EVM ou execução verificável.
+Chainlink CRE será usado como camada de orquestração híbrida de workflows para operações que exigem dados externos, computação offchain, secrets, triggers e execução verificável.
+
+### Responsabilidades do workflow
+
+- Validar clínicas
+- Verificar permissões de acesso
+- Consultar APIs externas
+- Validar integridade dos documentos
+- Registrar eventos de auditoria
 
 ### Áreas iniciais de workflow
 
@@ -270,7 +315,7 @@ Retorna resultado verificável ou escreve onchain
 
 ## IPFS e Pinata
 
-IPFS/Pinata será usado para armazenar ou referenciar arquivos e metadados relacionados a registros médicos.
+Documentos médicos ficam armazenados off-chain e criptografados. IPFS/Pinata é responsável por armazenar arquivos e metadados; a blockchain registra apenas os hashes, permissões e logs de auditoria.
 
 ### Responsabilidades esperadas
 
@@ -279,6 +324,16 @@ IPFS/Pinata será usado para armazenar ou referenciar arquivos e metadados relac
 - Associar CIDs a registros médicos
 - Validar referências armazenadas durante workflows CRE
 - Manter credenciais sensíveis no server-side
+
+---
+
+## Zero-Knowledge Proofs
+
+ZKP permite comprovar informações médicas sem revelar o prontuário completo. Exemplos de uso:
+
+- comprovar vacinação;
+- comprovar realização de exame recente;
+- compartilhar apenas alergias relevantes para uma consulta.
 
 ---
 
