@@ -1,11 +1,13 @@
 from hashlib import sha256
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
+from app.models.access_request import AccessRequest
 from app.models.medical_data import MedicalData
 from app.models.user import User
+from app.schemas.access_request import AccessRequestResponse
 from app.schemas.medical_data import MedicalDataResponse
 
 
@@ -111,5 +113,26 @@ def get_patient_medical_data(
         db.query(MedicalData)
         .filter(MedicalData.patient_id == patient_id)
         .order_by(MedicalData.id)
+        .all()
+    )
+
+
+@router.get(
+    "/{patient_id}/access-requests",
+    response_model=list[AccessRequestResponse],
+)
+def get_patient_access_requests(
+    patient_id: str,
+    db: Session = Depends(get_db),
+) -> list[AccessRequest]:
+    patient = db.get(User, patient_id)
+
+    if patient is None:
+        raise HTTPException(status_code=404, detail="Patient not found")
+
+    return (
+        db.query(AccessRequest)
+        .filter(AccessRequest.patient_id == patient_id)
+        .order_by(AccessRequest.created_at.desc())
         .all()
     )
