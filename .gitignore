@@ -15,3 +15,8 @@ __pycache__/
 *.pyd
 services/api/.venv/
 
+
+# Local database
+services/api/elome.db
+*.db
+

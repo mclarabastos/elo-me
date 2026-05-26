@@ -1,13 +1,26 @@
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app import models
 from app.api.v1.router import api_router
+from app.core.config import settings
+from app.db.database import Base, engine
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    Base.metadata.create_all(bind=engine)
+    yield
 
 
 app = FastAPI(
-    title="Elo.me API",
-    version="0.1.0",
+    title=settings.PROJECT_NAME,
+    version=settings.API_VERSION,
     description="Backend API for Elo.me hackathon MVP",
+    lifespan=lifespan,
 )
 
 allowed_origins = [
