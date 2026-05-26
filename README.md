@@ -1,6 +1,6 @@
 # Elo.me
 
-Uma infraestrutura de prontuário médico portátil com consentimento verificável, privacidade seletiva e auditoria em blockchain — conectando pacientes, médicos e clínicas em uma experiência digital segura e interoperável.
+Uma infraestrutura de prontuário médico portátil com consentimento verificável, privacidade seletiva e auditoria em blockchain, conectando pacientes, médicos e clínicas em uma experiência digital segura e interoperável.
 
 A plataforma permite que pacientes tenham controle total sobre seus dados médicos. Ao invés de clínicas armazenarem informações isoladas em diferentes sistemas, o paciente passa a possuir um histórico médico portátil, auditável e compartilhável de forma seletiva.
 
