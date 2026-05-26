@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 from app.api.v1.routes import access_requests
 from app.api.v1.routes import clinics, doctors, patients
+from app.api.v1.routes import consents
 from app.api.v1.routes import users
 
 
@@ -15,6 +16,7 @@ api_router.include_router(
     prefix="/access-requests",
     tags=["access-requests"],
 )
+api_router.include_router(consents.router, prefix="/consents", tags=["consents"])
 api_router.include_router(users.router, prefix="/users", tags=["users"])
 
 

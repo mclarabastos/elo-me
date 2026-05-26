@@ -4,6 +4,12 @@ from app.schemas.access_request import (
     AccessRequestStatusUpdate,
 )
 from app.schemas.clinic import ClinicResponse
+from app.schemas.consent import (
+    ConsentApproveRequest,
+    ConsentResponse,
+    ConsentRevokeRequest,
+    ConsentVerifyResponse,
+)
 from app.schemas.doctor import DoctorResponse
 from app.schemas.medical_data import MedicalDataResponse
 from app.schemas.user import UserResponse
@@ -14,6 +20,10 @@ __all__ = [
     "AccessRequestResponse",
     "AccessRequestStatusUpdate",
     "ClinicResponse",
+    "ConsentApproveRequest",
+    "ConsentResponse",
+    "ConsentRevokeRequest",
+    "ConsentVerifyResponse",
     "DoctorResponse",
     "MedicalDataResponse",
     "UserResponse",
