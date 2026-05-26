@@ -7,12 +7,14 @@ from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.models.access_request import AccessRequest
 from app.models.consent import Consent
+from app.models.medical_data import MedicalData
 from app.schemas.consent import (
     ConsentApproveRequest,
     ConsentResponse,
     ConsentRevokeRequest,
     ConsentVerifyResponse,
 )
+from app.schemas.medical_data import MedicalDataResponse
 
 
 router = APIRouter()
@@ -130,4 +132,29 @@ def verify_consent(
         allowedScopes=consent.allowed_scopes,
         expiresAt=consent.expires_at,
         isValid=is_valid,
+    )
+
+
+@router.get(
+    "/{consent_id}/authorized-medical-data",
+    response_model=list[MedicalDataResponse],
+)
+def get_authorized_medical_data(
+    consent_id: str,
+    db: Session = Depends(get_db),
+) -> list[MedicalData]:
+    consent = get_consent_or_404(db, consent_id)
+
+    if consent.status != "active" or consent.expires_at <= datetime.utcnow():
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Consent is not valid",
+        )
+
+    return (
+        db.query(MedicalData)
+        .filter(MedicalData.patient_id == consent.patient_id)
+        .filter(MedicalData.category.in_(consent.allowed_scopes))
+        .order_by(MedicalData.id)
+        .all()
     )
