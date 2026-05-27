@@ -1,7 +1,8 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from fastapi.testclient import TestClient
 
+from app.core.time import utc_now
 from app.db.database import SessionLocal
 from app.main import app
 from app.models.consent import Consent
@@ -101,7 +102,7 @@ def test_authorized_medical_data_expired_consent_fails() -> None:
         db = SessionLocal()
         try:
             db_consent = db.get(Consent, consent["id"])
-            db_consent.expires_at = datetime.utcnow() - timedelta(hours=1)
+            db_consent.expires_at = utc_now() - timedelta(hours=1)
             db.commit()
         finally:
             db.close()

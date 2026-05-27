@@ -1,9 +1,9 @@
-from datetime import datetime
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.core.time import ensure_utc, utc_now
 from app.db.database import get_db
 from app.models.audit_log import AuditLog
 from app.models.clinic import Clinic
@@ -25,7 +25,7 @@ def parse_requested_scopes(requested_scopes: str) -> list[str]:
 
 
 def is_consent_valid(consent: Consent) -> bool:
-    return consent.status == "active" and consent.expires_at > datetime.utcnow()
+    return consent.status == "active" and ensure_utc(consent.expires_at) > utc_now()
 
 
 def build_access_validation_response(

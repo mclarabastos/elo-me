@@ -141,7 +141,7 @@ https://sua-url.onrender.com/external/access/validate
 
 O backend atualmente possui testes automatizados para health, usuário demo, dados demo, access requests, consents, authorized medical data, external CRE API, audit logs e demo routes.
 
-Todos os testes precisam continuar passando antes de cada commit. Warnings de `datetime.utcnow` podem aparecer, mas não bloqueiam o MVP.
+Todos os testes precisam continuar passando antes de cada commit. As datas do backend usam datetime UTC timezone-aware para reduzir warnings e preparar o deploy.
 
 ## 5. Fluxo principal do MVP
 
@@ -380,7 +380,7 @@ Exemplo de retorno negado:
 5. Adicionar smart contract/testnet para registrar consentimento/hash/auditoria.
 6. Trocar SQLite por PostgreSQL em deploy.
 7. Integrar IPFS/Pinata.
-8. Melhorar timezone removendo warnings de `datetime.utcnow`.
+8. Evoluir validações de timezone conforme o banco de produção exigir.
 
 ## 13. Comandos úteis de Git
 

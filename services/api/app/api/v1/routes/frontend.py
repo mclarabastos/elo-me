@@ -1,9 +1,8 @@
-from datetime import datetime
-
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.api.v1.routes.demo import ensure_base_demo_data
+from app.core.time import utc_now
 from app.db.database import get_db
 from app.models.audit_log import AuditLog
 from app.models.clinic import Clinic
@@ -97,7 +96,7 @@ def get_patient_dashboard(db: Session = Depends(get_db)) -> dict[str, object]:
         db.query(Consent)
         .filter(Consent.patient_id == patient.id)
         .filter(Consent.status == "active")
-        .filter(Consent.expires_at > datetime.utcnow())
+        .filter(Consent.expires_at > utc_now())
         .count()
     )
     recent_audit_logs = (

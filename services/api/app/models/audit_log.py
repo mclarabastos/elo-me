@@ -1,7 +1,6 @@
-from datetime import datetime
-
 from sqlalchemy import Column, DateTime, JSON, String
 
+from app.core.time import utc_now
 from app.db.database import Base
 
 
@@ -17,4 +16,4 @@ class AuditLog(Base):
     decision = Column(String, nullable=False)
     reason = Column(String, nullable=False)
     validated_by = Column(String, default="external-api-for-chainlink-cre")
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=utc_now)

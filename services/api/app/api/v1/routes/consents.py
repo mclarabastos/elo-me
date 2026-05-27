@@ -1,9 +1,10 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.core.time import ensure_utc, utc_now
 from app.db.database import get_db
 from app.models.access_request import AccessRequest
 from app.models.consent import Consent
@@ -70,7 +71,7 @@ def approve_consent(
             detail="allowed_scopes must be contained in requested_scopes",
         )
 
-    now = datetime.utcnow()
+    now = utc_now()
     consent = Consent(
         id=f"consent_{uuid4().hex[:8]}",
         access_request_id=payload.access_request_id,
@@ -101,7 +102,7 @@ def revoke_consent(
     if payload.transaction_hash is not None:
         consent.transaction_hash = payload.transaction_hash
 
-    consent.updated_at = datetime.utcnow()
+    consent.updated_at = utc_now()
 
     db.commit()
     db.refresh(consent)
@@ -123,7 +124,7 @@ def verify_consent(
     db: Session = Depends(get_db),
 ) -> ConsentVerifyResponse:
     consent = get_consent_or_404(db, consent_id)
-    is_valid = consent.status == "active" and consent.expires_at > datetime.utcnow()
+    is_valid = consent.status == "active" and ensure_utc(consent.expires_at) > utc_now()
 
     return ConsentVerifyResponse(
         consentId=consent.id,
@@ -145,7 +146,7 @@ def get_authorized_medical_data(
 ) -> list[MedicalData]:
     consent = get_consent_or_404(db, consent_id)
 
-    if consent.status != "active" or consent.expires_at <= datetime.utcnow():
+    if consent.status != "active" or ensure_utc(consent.expires_at) <= utc_now():
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Consent is not valid",

@@ -1,7 +1,6 @@
-from datetime import datetime
-
 from sqlalchemy import Column, DateTime, ForeignKey, JSON, String
 
+from app.core.time import utc_now
 from app.db.database import Base
 
 
@@ -16,8 +15,12 @@ class Consent(Base):
     )
     patient_id = Column(String, ForeignKey("users.id"), nullable=False)
     allowed_scopes = Column(JSON, nullable=False)
-    expires_at = Column(DateTime, nullable=False)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
     status = Column(String, nullable=False, default="active")
     transaction_hash = Column(String, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=utc_now)
+    updated_at = Column(
+        DateTime(timezone=True),
+        default=utc_now,
+        onupdate=utc_now,
+    )
