@@ -1,37 +1,50 @@
-﻿export default function HomePage() {
+﻿import { SiteHeader } from "@/components/layout/site-header";
+import { HeroSection } from "@/components/layout/hero-section";
+import { ProtocolTrust } from "@/components/feedback/protocol-trust";
+import { AuditSection } from "@/components/sections/audit-section";
+import { Web3Ledger } from "@/components/sections/web3-ledger";
+import { FaqSection } from "@/components/sections/faq-section";
+import { SiteFooter } from "@/components/layout/site-footer";
+
+export default function HomePage() {
   return (
-    <main className="min-h-screen bg-white text-slate-950">
-      <section className="mx-auto flex min-h-screen max-w-7xl flex-col justify-center px-8">
-        <p className="mb-4 text-sm font-semibold uppercase tracking-[0.3em] text-blue-600">
-          ELO.ME
-        </p>
-
-        <h1 className="max-w-4xl text-6xl font-black uppercase leading-none tracking-tight text-slate-950 md:text-8xl">
-          Seus dados.
-          <br />
-          Seu controle.
-        </h1>
-
-        <p className="mt-8 max-w-xl text-lg text-slate-600">
-          Protocolo de identidade, consentimento e auditoria para dados de saúde.
-        </p>
-
-        <div className="mt-10 flex gap-4">
-          <a
-            href="/patient/dashboard"
-            className="rounded-md bg-blue-600 px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white"
-          >
-            Acessar demo
-          </a>
-
-          <a
-            href="/auth/login"
-            className="rounded-md border border-blue-200 px-6 py-3 text-sm font-semibold uppercase tracking-wide text-blue-700"
-          >
-            Entrar
-          </a>
-        </div>
-      </section>
-    </main>
+    <div
+      className="min-h-screen font-[family-name:var(--font-sans)] text-[#0B1B3F]"
+      style={{
+        background:
+          "radial-gradient(1200px 600px at 50% -200px, #C9D8F4 0%, transparent 60%), radial-gradient(900px 500px at 90% 30%, #DDE7F8 0%, transparent 60%), linear-gradient(180deg, #E8EEF9 0%, #DCE6F6 100%)",
+        backgroundAttachment: "fixed",
+      }}
+    >
+      <main
+        className="relative mx-auto my-6 max-w-[1320px] overflow-hidden rounded-[28px] border border-[rgba(11,27,63,0.10)] bg-[#F7F8FC]"
+        style={{
+          boxShadow:
+            "inset 0 1px 0 rgba(255,255,255,0.8), 0 30px 80px -40px rgba(11,27,63,0.25), 0 8px 30px -20px rgba(11,27,63,0.15)",
+        }}
+      >
+        {/* subtle blueprint grid */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(11,27,63,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(11,27,63,0.03) 1px, transparent 1px)",
+            backgroundSize: "64px 64px",
+            maskImage:
+              "radial-gradient(900px 900px at 50% 0%, #000 30%, transparent 80%)",
+            WebkitMaskImage:
+              "radial-gradient(900px 900px at 50% 0%, #000 30%, transparent 80%)",
+          }}
+        />
+        <SiteHeader />
+        <HeroSection />
+        <ProtocolTrust />
+        <AuditSection />
+        <Web3Ledger />
+        <FaqSection />
+        <SiteFooter />
+      </main>
+    </div>
   );
 }
