@@ -50,6 +50,39 @@
   --color-aurora-sky-soft: #bdd0ff;
   --color-aurora-cyan: #22d3ee;
   --color-aurora-navy: #0b1b3f;
+
+  /* Design system aliases */
+  --navy: var(--color-brand-navy);
+  --navy-2: var(--color-brand-navy-soft);
+  --blue: var(--color-brand-blue);
+  --blue-2: var(--color-brand-blue-soft);
+  --sky: var(--color-brand-sky);
+  --sky-2: var(--color-brand-sky-soft);
+
+  --bg: var(--color-background-page);
+  --bg-2: var(--color-background-page-end);
+  --card: var(--color-background-card);
+  --paper: var(--color-background-paper);
+
+  --ink-60: var(--color-text-muted);
+  --ink-45: var(--color-text-subtle);
+  --ink-30: var(--color-text-faint);
+
+  --line: var(--color-border-subtle);
+  --line-2: var(--color-border-muted);
+
+  --success: var(--color-status-success);
+  --warning: var(--color-status-warning);
+  --danger: var(--color-status-danger);
+
+  --shadow-card:
+    0 20px 50px -30px rgba(11, 27, 63, 0.3),
+    0 1px 0 rgba(255, 255, 255, 0.8) inset;
+
+  --shadow-floating:
+    0 1px 0 rgba(255, 255, 255, 0.8) inset,
+    0 30px 80px -40px rgba(11, 27, 63, 0.25),
+    0 8px 30px -20px rgba(11, 27, 63, 0.15);
 }
 
 html {
