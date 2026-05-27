@@ -1,9 +1,11 @@
 from datetime import datetime
+from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
+from app.models.audit_log import AuditLog
 from app.models.clinic import Clinic
 from app.models.consent import Consent
 from app.models.doctor import Doctor
@@ -74,6 +76,33 @@ def denied_response(
         requested_scopes=requested_scopes,
         allowed_scopes=allowed_scopes or [],
     )
+
+
+def save_audit_log(
+    *,
+    db: Session,
+    response: dict[str, object],
+    clinic_id: str,
+    doctor_id: str,
+    consent_id: str,
+    requested_scopes: list[str],
+    consent: Consent | None,
+) -> dict[str, object]:
+    audit_log = AuditLog(
+        id=f"audit_{uuid4().hex[:8]}",
+        patient_id=consent.patient_id if consent is not None else None,
+        clinic_id=clinic_id,
+        doctor_id=doctor_id,
+        consent_id=consent_id,
+        requested_scopes=requested_scopes,
+        decision=str(response["decision"]),
+        reason=str(response["reason"]),
+        validated_by=VALIDATED_BY,
+    )
+    db.add(audit_log)
+    db.commit()
+
+    return response
 
 
 @router.get("/clinics/{clinic_id}/verify")
@@ -152,59 +181,113 @@ def validate_external_access(
     db: Session = Depends(get_db),
 ) -> dict[str, object]:
     requested_scope_list = parse_requested_scopes(requested_scopes)
+    consent = db.get(Consent, consent_id)
 
     clinic = db.get(Clinic, clinic_id)
     if clinic is None:
-        return denied_response(
+        response = denied_response(
             reason="Clinic not found",
             requested_scopes=requested_scope_list,
+        )
+        return save_audit_log(
+            db=db,
+            response=response,
+            clinic_id=clinic_id,
+            doctor_id=doctor_id,
+            consent_id=consent_id,
+            requested_scopes=requested_scope_list,
+            consent=consent,
         )
 
     clinic_authorized = clinic.authorized and clinic.license_status == "active"
     if not clinic_authorized:
-        return denied_response(
+        response = denied_response(
             reason="Clinic is not authorized",
             requested_scopes=requested_scope_list,
+        )
+        return save_audit_log(
+            db=db,
+            response=response,
+            clinic_id=clinic_id,
+            doctor_id=doctor_id,
+            consent_id=consent_id,
+            requested_scopes=requested_scope_list,
+            consent=consent,
         )
 
     doctor = db.get(Doctor, doctor_id)
     if doctor is None:
-        return denied_response(
+        response = denied_response(
             reason="Doctor not found",
             clinic_authorized=True,
             requested_scopes=requested_scope_list,
         )
+        return save_audit_log(
+            db=db,
+            response=response,
+            clinic_id=clinic_id,
+            doctor_id=doctor_id,
+            consent_id=consent_id,
+            requested_scopes=requested_scope_list,
+            consent=consent,
+        )
 
     doctor_authorized = doctor.authorized and doctor.crm_status == "active"
     if not doctor_authorized:
-        return denied_response(
+        response = denied_response(
             reason="Doctor is not authorized",
             clinic_authorized=True,
             requested_scopes=requested_scope_list,
         )
+        return save_audit_log(
+            db=db,
+            response=response,
+            clinic_id=clinic_id,
+            doctor_id=doctor_id,
+            consent_id=consent_id,
+            requested_scopes=requested_scope_list,
+            consent=consent,
+        )
 
     doctor_belongs_to_clinic = doctor.clinic_id == clinic_id
     if not doctor_belongs_to_clinic:
-        return denied_response(
+        response = denied_response(
             reason="Doctor does not belong to clinic",
             clinic_authorized=True,
             doctor_authorized=True,
             requested_scopes=requested_scope_list,
         )
+        return save_audit_log(
+            db=db,
+            response=response,
+            clinic_id=clinic_id,
+            doctor_id=doctor_id,
+            consent_id=consent_id,
+            requested_scopes=requested_scope_list,
+            consent=consent,
+        )
 
-    consent = db.get(Consent, consent_id)
     if consent is None:
-        return denied_response(
+        response = denied_response(
             reason="Consent not found",
             clinic_authorized=True,
             doctor_authorized=True,
             doctor_belongs_to_clinic=True,
             requested_scopes=requested_scope_list,
         )
+        return save_audit_log(
+            db=db,
+            response=response,
+            clinic_id=clinic_id,
+            doctor_id=doctor_id,
+            consent_id=consent_id,
+            requested_scopes=requested_scope_list,
+            consent=consent,
+        )
 
     consent_valid = is_consent_valid(consent)
     if not consent_valid:
-        return denied_response(
+        response = denied_response(
             reason="Consent is not valid",
             clinic_authorized=True,
             doctor_authorized=True,
@@ -212,11 +295,20 @@ def validate_external_access(
             requested_scopes=requested_scope_list,
             allowed_scopes=consent.allowed_scopes,
         )
+        return save_audit_log(
+            db=db,
+            response=response,
+            clinic_id=clinic_id,
+            doctor_id=doctor_id,
+            consent_id=consent_id,
+            requested_scopes=requested_scope_list,
+            consent=consent,
+        )
 
     allowed_scopes = consent.allowed_scopes
     scope_valid = set(requested_scope_list).issubset(set(allowed_scopes))
     if not scope_valid:
-        return denied_response(
+        response = denied_response(
             reason="Requested scopes are outside consent",
             clinic_authorized=True,
             doctor_authorized=True,
@@ -225,8 +317,17 @@ def validate_external_access(
             requested_scopes=requested_scope_list,
             allowed_scopes=allowed_scopes,
         )
+        return save_audit_log(
+            db=db,
+            response=response,
+            clinic_id=clinic_id,
+            doctor_id=doctor_id,
+            consent_id=consent_id,
+            requested_scopes=requested_scope_list,
+            consent=consent,
+        )
 
-    return build_access_validation_response(
+    response = build_access_validation_response(
         decision="AUTHORIZED",
         reason="Access granted by valid consent",
         clinic_authorized=True,
@@ -236,4 +337,13 @@ def validate_external_access(
         scope_valid=True,
         requested_scopes=requested_scope_list,
         allowed_scopes=allowed_scopes,
+    )
+    return save_audit_log(
+        db=db,
+        response=response,
+        clinic_id=clinic_id,
+        doctor_id=doctor_id,
+        consent_id=consent_id,
+        requested_scopes=requested_scope_list,
+        consent=consent,
     )
