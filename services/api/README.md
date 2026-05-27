@@ -65,6 +65,78 @@ Rode os testes:
 pytest
 ```
 
+## Deploy
+
+### Render
+
+Passos sugeridos para publicar o backend no Render:
+
+1. Criar conta no Render.
+2. Criar um Web Service conectado ao GitHub.
+3. Selecionar o repositório `elo-me`.
+4. Definir Root Directory como `services/api`.
+5. Definir Build Command:
+
+```powershell
+pip install -r requirements.txt
+```
+
+6. Definir Start Command:
+
+```powershell
+uvicorn app.main:app --host 0.0.0.0 --port $PORT
+```
+
+7. Configurar env vars:
+
+```text
+APP_ENV=production
+DEBUG=false
+DATABASE_URL=sqlite:///./elome.db
+SECRET_KEY=<gerar valor seguro>
+ACCESS_TOKEN_EXPIRE_MINUTES=60
+BACKEND_CORS_ORIGINS=<url do front quando existir>
+```
+
+8. Após o deploy, testar:
+
+```text
+/health
+/docs
+/demo/overview
+```
+
+SQLite é aceitável para MVP/demo, mas em produção real deve migrar para PostgreSQL. A URL pública do backend será usada pelo frontend e pelo Chainlink CRE. Quando o frontend estiver publicado, a URL dele precisa entrar em `BACKEND_CORS_ORIGINS`.
+
+Este diretório também inclui `Procfile`, `runtime.txt`, `.env.example` e `render.yaml` para facilitar deploy. Se o Render exigir `render.yaml` na raiz do repo futuramente, isso deve ser feito em uma etapa separada para evitar mexer no monorepo agora.
+
+### Railway/Fly.io
+
+Também é possível usar Railway ou Fly.io usando o mesmo start command:
+
+```powershell
+uvicorn app.main:app --host 0.0.0.0 --port $PORT
+```
+
+## URL pública para Clara e Isa
+
+Depois do deploy, compartilhar com a equipe:
+
+Backend base URL:
+
+```text
+https://sua-url.onrender.com
+```
+
+Rotas úteis:
+
+```text
+https://sua-url.onrender.com/health
+https://sua-url.onrender.com/docs
+https://sua-url.onrender.com/demo/overview
+https://sua-url.onrender.com/external/access/validate
+```
+
 ## 4. Status atual dos testes
 
 O backend atualmente possui testes automatizados para health, usuário demo, dados demo, access requests, consents, authorized medical data, external CRE API, audit logs e demo routes.
