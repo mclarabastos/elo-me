@@ -1,9 +1,9 @@
-from datetime import datetime
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.core.time import utc_now
 from app.db.database import get_db
 from app.models.access_request import AccessRequest
 from app.models.clinic import Clinic
@@ -112,7 +112,7 @@ def update_access_request_status(
 
     access_request = get_access_request_or_404(db, request_id)
     access_request.status = payload.status
-    access_request.updated_at = datetime.utcnow()
+    access_request.updated_at = utc_now()
 
     db.commit()
     db.refresh(access_request)

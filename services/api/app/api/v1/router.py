@@ -1,9 +1,13 @@
 from fastapi import APIRouter
 
 from app.api.v1.routes import access_requests
+from app.api.v1.routes import audit_logs
 from app.api.v1.routes import clinics, doctors, patients
 from app.api.v1.routes import consents
+from app.api.v1.routes import demo
 from app.api.v1.routes import external
+from app.api.v1.routes import frontend
+from app.api.v1.routes import integration
 from app.api.v1.routes import users
 
 
@@ -17,8 +21,16 @@ api_router.include_router(
     prefix="/access-requests",
     tags=["access-requests"],
 )
+api_router.include_router(audit_logs.router, tags=["audit-logs"])
 api_router.include_router(consents.router, prefix="/consents", tags=["consents"])
+api_router.include_router(demo.router, prefix="/demo", tags=["demo"])
 api_router.include_router(external.router, prefix="/external", tags=["external"])
+api_router.include_router(frontend.router, prefix="/frontend", tags=["frontend"])
+api_router.include_router(
+    integration.router,
+    prefix="/integration",
+    tags=["integration"],
+)
 api_router.include_router(users.router, prefix="/users", tags=["users"])
 
 

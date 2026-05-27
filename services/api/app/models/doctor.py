@@ -1,7 +1,6 @@
-from datetime import datetime
-
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, String
 
+from app.core.time import utc_now
 from app.db.database import Base
 
 
@@ -14,5 +13,9 @@ class Doctor(Base):
     authorized = Column(Boolean, default=True)
     crm_status = Column(String, default="active")
     clinic_id = Column(String, ForeignKey("clinics.id"))
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=utc_now)
+    updated_at = Column(
+        DateTime(timezone=True),
+        default=utc_now,
+        onupdate=utc_now,
+    )

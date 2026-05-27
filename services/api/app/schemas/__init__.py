@@ -3,6 +3,7 @@ from app.schemas.access_request import (
     AccessRequestResponse,
     AccessRequestStatusUpdate,
 )
+from app.schemas.audit_log import AuditLogResponse
 from app.schemas.clinic import ClinicResponse
 from app.schemas.consent import (
     ConsentApproveRequest,
@@ -19,6 +20,7 @@ __all__ = [
     "AccessRequestCreate",
     "AccessRequestResponse",
     "AccessRequestStatusUpdate",
+    "AuditLogResponse",
     "ClinicResponse",
     "ConsentApproveRequest",
     "ConsentResponse",
