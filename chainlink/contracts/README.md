@@ -71,39 +71,78 @@ Os mappings públicos `medicalRecordProofs`, `consents` e `accessLogs` também g
 
 Esses eventos são a base para auditoria e demonstração no pitch.
 
-## Como compilar futuramente
+## Desenvolvimento com Hardhat
 
-Ainda não há um projeto Hardhat ou Foundry configurado nesta pasta. Para manter a etapa mínima e sem dependências externas, o contrato foi escrito de forma independente.
-
-Opções para compilar depois:
-
-### Remix
-
-1. Abrir [Remix](https://remix.ethereum.org/).
-2. Criar arquivo `EloConsentRegistry.sol`.
-3. Colar o conteúdo de `src/EloConsentRegistry.sol`.
-4. Selecionar compilador Solidity `0.8.24` ou compatível.
-5. Compilar e fazer deploy em testnet.
-
-### Hardhat
-
-Futuramente, dentro de `chainlink/contracts`, criar configuração mínima:
+Instalar dependências:
 
 ```powershell
-npm init -y
-npm install --save-dev hardhat
-npx hardhat init
-npx hardhat compile
+npm install
 ```
 
-### Foundry
-
-Futuramente, dentro de `chainlink/contracts`, criar configuração mínima:
+Compilar:
 
 ```powershell
-forge init --no-git
-forge build
+npm run compile
 ```
+
+Testar:
+
+```powershell
+npm test
+```
+
+Deploy local:
+
+```powershell
+npm run deploy:local
+```
+
+Deploy Sepolia:
+
+```powershell
+npm run deploy:sepolia
+```
+
+Deploy Arbitrum Sepolia:
+
+```powershell
+npm run deploy:arbitrum-sepolia
+```
+
+## Variáveis de ambiente
+
+Copie `.env.example` para `.env` apenas localmente:
+
+```powershell
+cp .env.example .env
+```
+
+Variáveis esperadas:
+
+- `SEPOLIA_RPC_URL`
+- `ARBITRUM_SEPOLIA_RPC_URL`
+- `PRIVATE_KEY`
+- `ETHERSCAN_API_KEY`
+- `ARBISCAN_API_KEY`
+
+Nunca commite `.env` real, private key, RPC privado ou qualquer segredo. O arquivo `.gitignore` local já ignora `.env`.
+
+Se `PRIVATE_KEY` não existir, `compile` e `test` continuam funcionando. Deploy em testnet exige RPC e private key reais configurados localmente.
+
+## Escolha de rede para hackathon
+
+- Sepolia é simples para validação EVM geral.
+- Arbitrum Sepolia pode ser usada se o time quiser se aproximar de ecossistema L2/EVM.
+- O backend já é agnóstico; precisa apenas salvar `contract_address`, `chain_id` e `transaction_hash` futuramente.
+
+## Como o contrato conversa com o backend
+
+1. Backend gera `data_hash`.
+2. Backend/frontend chama `registerMedicalRecordProof`.
+3. Backend/frontend chama `approveConsent`.
+4. CRE/backend chama a validação externa `/external/access/validate`.
+5. Depois registra `registerAccessValidation`.
+6. Backend salva `transaction_hash` retornado.
 
 ## Observações de segurança
 
@@ -116,10 +155,11 @@ forge build
 
 ## Próximos passos para deploy em testnet
 
-1. Escolher rede de teste compatível com o pitch.
-2. Configurar Hardhat ou Foundry dentro de `chainlink/contracts`.
-3. Criar script de deploy.
-4. Fazer deploy do `EloConsentRegistry`.
-5. Salvar endereço do contrato em variável de ambiente do backend.
-6. Integrar o backend para registrar hashes, consentimentos e auditorias no contrato.
-7. Conectar o fluxo com Chainlink CRE real.
+1. Instalar dependências com `npm install`.
+2. Rodar `npm run compile`.
+3. Rodar `npm test`.
+4. Configurar `.env` local com RPC e private key de testnet.
+5. Fazer deploy com `npm run deploy:sepolia` ou `npm run deploy:arbitrum-sepolia`.
+6. Salvar endereço do contrato em variável de ambiente do backend.
+7. Integrar o backend para registrar hashes, consentimentos e auditorias no contrato.
+8. Conectar o fluxo com Chainlink CRE real.
