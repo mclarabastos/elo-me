@@ -10,14 +10,13 @@ import { cn } from "@/lib/utils";
 export function ProtocolTrust() {
   return (
     <section
+     
       id="consentimento"
-      className="relative border-t border-[rgba(11,27,63,0.10)] px-9 pb-[70px] pt-[110px]"
+      className="relative px-9 pb-[70px] pt-[88px]"
     >
       <div className="mx-auto flex w-full max-w-[1100px] flex-col gap-12">
         <header className="mx-auto flex max-w-[760px] flex-col items-center gap-[18px] text-center">
-          <span className="inline-flex items-center rounded-full border border-[rgba(11,27,63,0.10)] bg-white px-3.5 py-1.5 font-[family-name:var(--font-mono)] text-[11px] font-semibold uppercase tracking-[0.16em] text-[#1E47FF]">
-            Protocolo de confiança
-          </span>
+          
           <h2
             className="text-balance font-bold leading-[1.05] tracking-[-0.025em] text-[#0B1B3F]"
             style={{ fontSize: "clamp(32px, 4vw, 52px)" }}
@@ -27,7 +26,7 @@ export function ProtocolTrust() {
             experiência.
           </h2>
           <p className="max-w-[640px] text-pretty text-[17px] leading-[1.55] text-[rgba(11,27,63,0.62)]">
-            O ELO.ME conecta pacientes, clínicas e auditoria em um fluxo seguro
+            O Elo.me conecta pacientes, clínicas e auditoria em um fluxo seguro
             para compartilhamento de dados de saúde.
           </p>
         </header>
@@ -159,8 +158,6 @@ function Frame({ children }: { children: ReactNode }) {
     </div>
   );
 }
-
-/* ----------------------------- Visuals ---------------------------------- */
 
 const consentScopes = [
   { label: "Exames laboratoriais", on: true, ttl: "24h" },
