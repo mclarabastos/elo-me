@@ -4,12 +4,12 @@ import { time } from "@nomicfoundation/hardhat-network-helpers";
 import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 
 async function deployRegistry() {
-  const [owner] = await ethers.getSigners();
+  const [owner, creForwarder, other, patient, clinic] = await ethers.getSigners();
   const Registry = await ethers.getContractFactory("EloConsentRegistry");
-  const registry = await Registry.deploy();
+  const registry = await Registry.deploy(creForwarder.address);
   await registry.waitForDeployment();
 
-  return { registry, owner };
+  return { registry, owner, creForwarder, other, patient, clinic };
 }
 
 function hashString(value: string) {
@@ -31,9 +31,10 @@ describe("EloConsentRegistry", function () {
 
   describe("deploy", function () {
     it("deploys the contract", async function () {
-      const { registry } = await deployRegistry();
+      const { registry, creForwarder } = await deployRegistry();
 
       expect(await registry.getAddress()).to.properAddress;
+      expect(await registry.cre_forwarder()).to.equal(creForwarder.address);
     });
   });
 
@@ -225,7 +226,7 @@ describe("EloConsentRegistry", function () {
           anyValue
         );
 
-      const accessLog = await registry.accessLogs(accessIdHash);
+      const accessLog = await registry.accessValidationLogs(accessIdHash);
       expect(accessLog.decisionHash).to.equal(authorizedHash);
       expect(accessLog.exists).to.equal(true);
     });
@@ -320,6 +321,82 @@ describe("EloConsentRegistry", function () {
 
       expect(proof.dataHash).to.equal(dataHash);
       expect(consent.scopesHash).to.equal(scopesHash);
+    });
+  });
+
+  describe("CRE recordAccess compatibility", function () {
+    it("records access when called by the CRE forwarder", async function () {
+      const { registry, creForwarder, patient, clinic } = await deployRegistry();
+
+      await expect(
+        registry
+          .connect(creForwarder)
+          .recordAccess(
+            patient.address,
+            clinic.address,
+            true,
+            scopesHash,
+            dataHash
+          )
+      )
+        .to.emit(registry, "AccessRecorded")
+        .withArgs(patient.address, clinic.address, true, scopesHash, anyValue);
+
+      const log = await registry.accessLogs(patient.address, clinic.address);
+      expect(log.clinic).to.equal(clinic.address);
+      expect(log.scope).to.equal(scopesHash);
+      expect(log.approved).to.equal(true);
+      expect(log.documentHash).to.equal(dataHash);
+    });
+
+    it("rejects recordAccess from non-forwarder addresses", async function () {
+      const { registry, other, patient, clinic } = await deployRegistry();
+
+      await expect(
+        registry
+          .connect(other)
+          .recordAccess(
+            patient.address,
+            clinic.address,
+            true,
+            scopesHash,
+            dataHash
+          )
+      ).to.be.revertedWith("Only CRE forwarder");
+    });
+
+    it("getConsent returns true and expiry for approved access", async function () {
+      const { registry, creForwarder, patient, clinic } = await deployRegistry();
+
+      await registry
+        .connect(creForwarder)
+        .recordAccess(
+          patient.address,
+          clinic.address,
+          true,
+          scopesHash,
+          dataHash
+        );
+
+      const log = await registry.accessLogs(patient.address, clinic.address);
+      const [hasConsent, expiry] = await registry.getConsent(
+        patient.address,
+        clinic.address
+      );
+
+      expect(hasConsent).to.equal(true);
+      expect(expiry).to.equal(log.timestamp + 24n * 60n * 60n);
+    });
+
+    it("getConsent returns false for patient and clinic without record", async function () {
+      const { registry, patient, clinic } = await deployRegistry();
+
+      const [hasConsent] = await registry.getConsent(
+        patient.address,
+        clinic.address
+      );
+
+      expect(hasConsent).to.equal(false);
     });
   });
 });

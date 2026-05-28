@@ -5,8 +5,9 @@ async function main() {
   const EloConsentRegistry = await ethers.getContractFactory(
     "EloConsentRegistry"
   );
+  const forwarderAddress = process.env.CRE_FORWARDER_ADDRESS || deployer.address;
 
-  const registry = await EloConsentRegistry.deploy();
+  const registry = await EloConsentRegistry.deploy(forwarderAddress);
   await registry.waitForDeployment();
 
   const address = await registry.getAddress();
@@ -14,6 +15,7 @@ async function main() {
   console.log(`EloConsentRegistry deployed to: ${address}`);
   console.log(`Network: ${network.name}`);
   console.log(`Deployer: ${deployer.address}`);
+  console.log(`CRE forwarder: ${forwarderAddress}`);
   console.log("");
   console.log("Next steps:");
   console.log("- Copy the contract address to the backend env when integration starts.");

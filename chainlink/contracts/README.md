@@ -50,6 +50,20 @@ bytes32 patientHash = registry.hashString("patient_rose");
 6. Contrato registra `AccessValidated` com `registerAccessValidation`.
 7. Se paciente revoga, contrato registra `ConsentRevoked` com `revokeConsent`.
 
+## Fluxo compatível com Chainlink CRE
+
+A integração da Isa usa duas chamadas principais:
+
+- EVM Read: `getConsent(address patient, address clinic)`
+- EVM Write: `recordAccess(address patient, address clinic, bool approved, bytes32 scope, bytes32 documentHash)`
+
+`recordAccess` só pode ser chamada pelo endereço `cre_forwarder`, definido no deploy. Essa função salva um `AccessLog` por paciente e clínica em `accessLogs[patient][clinic]`, sem gravar dados sensíveis em texto aberto.
+
+`getConsent(address patient, address clinic)` retorna:
+
+- `hasConsent`: o último status aprovado/negado registrado para aquele par paciente-clínica;
+- `expiry`: `timestamp + 24 hours` do log registrado.
+
 ## Funções principais
 
 - `registerMedicalRecordProof(bytes32 patientHash, bytes32 recordIdHash, bytes32 dataHash)`
@@ -57,7 +71,9 @@ bytes32 patientHash = registry.hashString("patient_rose");
 - `revokeConsent(bytes32 consentIdHash)`
 - `registerAccessValidation(bytes32 accessIdHash, bytes32 consentIdHash, bytes32 decisionHash, bytes32 requestedScopesHash)`
 - `isConsentActive(bytes32 consentIdHash)`
-- `getConsent(bytes32 consentIdHash)`
+- `getConsentById(bytes32 consentIdHash)`
+- `getConsent(address patient, address clinic)`
+- `recordAccess(address patient, address clinic, bool approved, bytes32 scope, bytes32 documentHash)`
 - `hashString(string value)`
 
 Os mappings públicos `medicalRecordProofs`, `consents` e `accessLogs` também geram getters automáticos.
@@ -68,6 +84,7 @@ Os mappings públicos `medicalRecordProofs`, `consents` e `accessLogs` também g
 - `ConsentApproved`
 - `ConsentRevoked`
 - `AccessValidated`
+- `AccessRecorded`
 
 Esses eventos são a base para auditoria e demonstração no pitch.
 
@@ -124,10 +141,13 @@ Variáveis esperadas:
 - `PRIVATE_KEY`
 - `ETHERSCAN_API_KEY`
 - `ARBISCAN_API_KEY`
+- `CRE_FORWARDER_ADDRESS`
 
 Nunca commite `.env` real, private key, RPC privado ou qualquer segredo. O arquivo `.gitignore` local já ignora `.env`.
 
 Se `PRIVATE_KEY` não existir, `compile` e `test` continuam funcionando. Deploy em testnet exige RPC e private key reais configurados localmente.
+
+Se `CRE_FORWARDER_ADDRESS` não existir, o script de deploy usa o endereço do deployer como fallback local/demo. Em testnet, configure o endereço real do forwarder usado pelo Chainlink CRE.
 
 ## Escolha de rede para hackathon
 
@@ -141,8 +161,10 @@ Se `PRIVATE_KEY` não existir, `compile` e `test` continuam funcionando. Deploy 
 2. Backend/frontend chama `registerMedicalRecordProof`.
 3. Backend/frontend chama `approveConsent`.
 4. CRE/backend chama a validação externa `/external/access/validate`.
-5. Depois registra `registerAccessValidation`.
-6. Backend salva `transaction_hash` retornado.
+5. CRE pode chamar `getConsent(address patient, address clinic)` via EVM Read.
+6. CRE registra `recordAccess` via EVM Write usando o forwarder autorizado.
+7. Backend pode registrar auditoria legada com `registerAccessValidation`.
+8. Backend salva `transaction_hash` retornado.
 
 ## Observações de segurança
 
@@ -159,7 +181,8 @@ Se `PRIVATE_KEY` não existir, `compile` e `test` continuam funcionando. Deploy 
 2. Rodar `npm run compile`.
 3. Rodar `npm test`.
 4. Configurar `.env` local com RPC e private key de testnet.
-5. Fazer deploy com `npm run deploy:sepolia` ou `npm run deploy:arbitrum-sepolia`.
-6. Salvar endereço do contrato em variável de ambiente do backend.
-7. Integrar o backend para registrar hashes, consentimentos e auditorias no contrato.
-8. Conectar o fluxo com Chainlink CRE real.
+5. Configurar `CRE_FORWARDER_ADDRESS` com o forwarder real do Chainlink CRE.
+6. Fazer deploy com `npm run deploy:sepolia` ou `npm run deploy:arbitrum-sepolia`.
+7. Salvar endereço do contrato em variável de ambiente do backend.
+8. Integrar o backend para registrar hashes, consentimentos e auditorias no contrato.
+9. Conectar o fluxo com Chainlink CRE real.

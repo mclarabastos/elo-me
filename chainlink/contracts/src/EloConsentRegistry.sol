@@ -5,6 +5,8 @@ pragma solidity ^0.8.24;
 /// @notice Verifiable registry for Elo.me hashes, consents, and audit events.
 /// @dev This contract must never receive plaintext medical data.
 contract EloConsentRegistry {
+    address public cre_forwarder;
+
     struct MedicalRecordProof {
         bytes32 patientHash;
         bytes32 recordIdHash;
@@ -27,7 +29,7 @@ contract EloConsentRegistry {
         bool exists;
     }
 
-    struct AccessLog {
+    struct AccessValidationLog {
         bytes32 accessIdHash;
         bytes32 consentIdHash;
         bytes32 decisionHash;
@@ -37,9 +39,18 @@ contract EloConsentRegistry {
         bool exists;
     }
 
+    struct AccessLog {
+        address clinic;
+        bytes32 scope;
+        bool approved;
+        uint256 timestamp;
+        bytes32 documentHash;
+    }
+
     mapping(bytes32 => MedicalRecordProof) public medicalRecordProofs;
     mapping(bytes32 => Consent) public consents;
-    mapping(bytes32 => AccessLog) public accessLogs;
+    mapping(bytes32 => AccessValidationLog) public accessValidationLogs;
+    mapping(address => mapping(address => AccessLog)) public accessLogs;
 
     event MedicalRecordProofRegistered(
         bytes32 indexed patientHash,
@@ -75,6 +86,24 @@ contract EloConsentRegistry {
         address registeredBy,
         uint256 createdAt
     );
+
+    event AccessRecorded(
+        address indexed patient,
+        address indexed clinic,
+        bool approved,
+        bytes32 scope,
+        uint256 timestamp
+    );
+
+    constructor(address _forwarder) {
+        require(_forwarder != address(0), "Invalid CRE forwarder");
+        cre_forwarder = _forwarder;
+    }
+
+    modifier onlyCREForwarder() {
+        require(msg.sender == cre_forwarder, "Only CRE forwarder");
+        _;
+    }
 
     function registerMedicalRecordProof(
         bytes32 patientHash,
@@ -181,12 +210,15 @@ contract EloConsentRegistry {
             requestedScopesHash != bytes32(0),
             "Invalid requested scopes hash"
         );
-        require(!accessLogs[accessIdHash].exists, "Access already registered");
+        require(
+            !accessValidationLogs[accessIdHash].exists,
+            "Access already registered"
+        );
         require(consents[consentIdHash].exists, "Consent not found");
 
         uint256 createdAt = block.timestamp;
 
-        accessLogs[accessIdHash] = AccessLog({
+        accessValidationLogs[accessIdHash] = AccessValidationLog({
             accessIdHash: accessIdHash,
             consentIdHash: consentIdHash,
             decisionHash: decisionHash,
@@ -203,6 +235,30 @@ contract EloConsentRegistry {
             requestedScopesHash,
             msg.sender,
             createdAt
+        );
+    }
+
+    function recordAccess(
+        address patient,
+        address clinic,
+        bool approved,
+        bytes32 scope,
+        bytes32 documentHash
+    ) external onlyCREForwarder {
+        accessLogs[patient][clinic] = AccessLog({
+            clinic: clinic,
+            scope: scope,
+            approved: approved,
+            timestamp: block.timestamp,
+            documentHash: documentHash
+        });
+
+        emit AccessRecorded(
+            patient,
+            clinic,
+            approved,
+            scope,
+            block.timestamp
         );
     }
 
@@ -224,10 +280,19 @@ contract EloConsentRegistry {
         return true;
     }
 
-    function getConsent(
+    function getConsentById(
         bytes32 consentIdHash
     ) external view returns (Consent memory) {
         return consents[consentIdHash];
+    }
+
+    function getConsent(
+        address patient,
+        address clinic
+    ) external view returns (bool hasConsent, uint256 expiry) {
+        AccessLog memory log = accessLogs[patient][clinic];
+
+        return (log.approved, log.timestamp + 24 hours);
     }
 
     function hashString(string calldata value) external pure returns (bytes32) {
