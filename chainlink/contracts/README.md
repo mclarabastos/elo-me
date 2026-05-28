@@ -126,6 +126,21 @@ Deploy Arbitrum Sepolia:
 npm run deploy:arbitrum-sepolia
 ```
 
+## Deploy atual em Arbitrum Sepolia
+
+O contrato `EloConsentRegistry` já foi publicado em testnet para apoiar a integração futura com Chainlink CRE e o pitch.
+
+| Campo | Valor |
+| --- | --- |
+| Network | `arbitrumSepolia` |
+| Chain ID | `421614` |
+| Contract address | `0x5eD86192F0521f35C8b93BD1D774Aa32ADA0E444` |
+| Deployer | `0x5547E43EF39aD62668005aA861Db8556564cEc09` |
+| CRE forwarder usado no deploy | `0x5547E43EF39aD62668005aA861Db8556564cEc09` |
+| Explorer | `https://sepolia.arbiscan.io/address/0x5eD86192F0521f35C8b93BD1D774Aa32ADA0E444` |
+
+Esse deploy não coloca dados médicos on-chain. Ele registra apenas hashes, endereços técnicos, status e eventos. O endereço do deploy pode ser usado no backend por variáveis opcionais, sem obrigar chamadas reais à blockchain durante o modo demo/mock.
+
 ## Variáveis de ambiente
 
 Copie `.env.example` para `.env` apenas localmente:

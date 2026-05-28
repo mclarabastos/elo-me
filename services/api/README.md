@@ -137,6 +137,32 @@ https://sua-url.onrender.com/demo/overview
 https://sua-url.onrender.com/external/access/validate
 ```
 
+## Contrato publicado para futura integração on-chain
+
+O backend continua funcionando em modo demo/mock: nenhuma rota depende de chamada real à blockchain, e os contratos atuais da API permanecem iguais. Mesmo assim, o projeto já tem um `EloConsentRegistry` publicado em Arbitrum Sepolia para a próxima etapa de integração com Chainlink CRE.
+
+Dados do deploy:
+
+| Campo | Valor |
+| --- | --- |
+| Network | `arbitrumSepolia` |
+| Chain ID | `421614` |
+| Contract address | `0x5eD86192F0521f35C8b93BD1D774Aa32ADA0E444` |
+| Deployer | `0x5547E43EF39aD62668005aA861Db8556564cEc09` |
+| CRE forwarder usado no deploy | `0x5547E43EF39aD62668005aA861Db8556564cEc09` |
+| Explorer | `https://sepolia.arbiscan.io/address/0x5eD86192F0521f35C8b93BD1D774Aa32ADA0E444` |
+
+Variáveis opcionais disponíveis no backend para uso futuro:
+
+```text
+ELO_CONSENT_REGISTRY_ADDRESS=0x5eD86192F0521f35C8b93BD1D774Aa32ADA0E444
+ELO_CHAIN_ID=421614
+ELO_CHAIN_NAME=arbitrumSepolia
+ELO_BLOCK_EXPLORER_URL=https://sepolia.arbiscan.io/address/0x5eD86192F0521f35C8b93BD1D774Aa32ADA0E444
+```
+
+Essas variáveis não são segredos e não incluem private key, RPC privado ou token. A integração on-chain real fica para uma etapa futura.
+
 ## 4. Status atual dos testes
 
 O backend atualmente possui testes automatizados para health, usuário demo, dados demo, access requests, consents, authorized medical data, external CRE API, audit logs e demo routes.
