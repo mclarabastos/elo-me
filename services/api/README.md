@@ -163,6 +163,51 @@ ELO_BLOCK_EXPLORER_URL=https://sepolia.arbiscan.io/address/0x5eD86192F0521f35C8b
 
 Essas variáveis não são segredos e não incluem private key, RPC privado ou token. A integração on-chain real fica para uma etapa futura.
 
+## Wallet abstraction e login tradicional
+
+O Elo.me foi preparado para um fluxo em que a pessoa usuária entra com métodos familiares, como Google, e-mail, telefone ou passkey, usando uma solução de wallet abstraction/embedded wallet no frontend.
+
+O backend **não implementa OAuth real nesta etapa** e não depende de SDK de Privy, Web3Auth, Dynamic ou MetaMask Embedded Wallets. A ideia é provider-agnostic:
+
+1. O frontend autentica a pessoa usando Privy, Web3Auth, Dynamic ou solução equivalente.
+2. A solução cria ou conecta uma wallet embutida automaticamente.
+3. A pessoa não precisa entender blockchain, seed phrase, MetaMask ou private key.
+4. O frontend envia ao backend apenas os dados mínimos da identidade autenticada.
+5. O backend registra `provider`, `provider_user_id`, `wallet_address`, dados de contato opcionais e perfil de acesso.
+
+A private key nunca deve ir para o backend. O backend também não salva seed phrase, token OAuth, segredo de sessão do provider ou payload médico sensível.
+
+### Endpoints de auth
+
+| Método | Rota | Uso |
+| --- | --- | --- |
+| POST | `/auth/wallet-session` | Registrar ou atualizar sessão autenticada por wallet abstraction |
+| GET | `/auth/wallet-session/{identity_id}` | Buscar identidade autenticada pelo id interno |
+| GET | `/auth/wallet-address/{wallet_address}` | Buscar identidade por wallet address |
+| PATCH | `/auth/wallet-session/{identity_id}/role` | Atualizar perfil de acesso |
+| GET | `/auth/roles` | Listar perfis e ações disponíveis |
+
+Exemplo de payload para `POST /auth/wallet-session`:
+
+```json
+{
+  "provider": "privy",
+  "provider_user_id": "did:privy:demo_user_123",
+  "email": "roseane@example.com",
+  "phone": null,
+  "wallet_address": "0x5547E43EF39aD62668005aA861Db8556564cEc09",
+  "display_name": "Roseane Carreiro",
+  "role": "patient"
+}
+```
+
+Perfis suportados:
+
+- `patient`: pode ver dados próprios, aprovar/revogar consentimento, ver auditoria e gerenciar perfil de emergência.
+- `doctor`: pode solicitar acesso, ver dados autorizados e validar status de consentimento.
+- `clinic`: pode gerenciar médicas/médicos, solicitar acesso e ver logs de conformidade.
+- `admin`: pode ver visão geral do sistema, gerenciar registry e ver logs de auditoria.
+
 ## 4. Status atual dos testes
 
 O backend atualmente possui testes automatizados para health, usuário demo, dados demo, access requests, consents, authorized medical data, external CRE API, audit logs e demo routes.
@@ -274,6 +319,11 @@ Campos principais:
 | Método | Rota | Uso | Consumidor principal |
 | --- | --- | --- | --- |
 | GET | `/health` | Verificar se API está viva | dev/equipe |
+| POST | `/auth/wallet-session` | Registrar sessão via wallet abstraction | frontend |
+| GET | `/auth/wallet-session/{identity_id}` | Buscar identidade autenticada | frontend/backend |
+| GET | `/auth/wallet-address/{wallet_address}` | Buscar identidade por wallet | frontend/backend |
+| PATCH | `/auth/wallet-session/{identity_id}/role` | Atualizar perfil de acesso | frontend/backend |
+| GET | `/auth/roles` | Listar perfis e ações disponíveis | frontend |
 | GET | `/users/demo` | Obter/criar paciente demo | frontend |
 | GET | `/clinics/demo` | Obter/criar clínica demo | frontend/demo |
 | GET | `/doctors/demo` | Obter/criar médica demo | frontend/demo |
