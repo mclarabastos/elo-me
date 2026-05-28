@@ -7,3 +7,16 @@ node_modules
 
 
 *.tsbuildinfo
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+services/api/.venv/
+
+
+# Local database
+services/api/elome.db
+*.db
+
