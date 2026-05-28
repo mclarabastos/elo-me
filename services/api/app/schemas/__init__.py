@@ -4,6 +4,12 @@ from app.schemas.access_request import (
     AccessRequestStatusUpdate,
 )
 from app.schemas.audit_log import AuditLogResponse
+from app.schemas.auth_identity import (
+    AuthIdentityCreate,
+    AuthIdentityResponse,
+    AuthIdentityRoleUpdate,
+    WalletSessionResponse,
+)
 from app.schemas.clinic import ClinicResponse
 from app.schemas.consent import (
     ConsentApproveRequest,
@@ -21,6 +27,9 @@ __all__ = [
     "AccessRequestResponse",
     "AccessRequestStatusUpdate",
     "AuditLogResponse",
+    "AuthIdentityCreate",
+    "AuthIdentityResponse",
+    "AuthIdentityRoleUpdate",
     "ClinicResponse",
     "ConsentApproveRequest",
     "ConsentResponse",
@@ -29,4 +38,5 @@ __all__ = [
     "DoctorResponse",
     "MedicalDataResponse",
     "UserResponse",
+    "WalletSessionResponse",
 ]

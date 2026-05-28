@@ -1,0 +1,20 @@
+{
+  "name": "elome-contracts",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy:local": "hardhat run scripts/deploy.ts",
+    "deploy:sepolia": "hardhat run scripts/deploy.ts --network sepolia",
+    "deploy:arbitrum-sepolia": "hardhat run scripts/deploy.ts --network arbitrumSepolia"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "5.0.0",
+    "@types/node": "22.10.0",
+    "dotenv": "16.4.7",
+    "hardhat": "2.28.0",
+    "ts-node": "10.9.2",
+    "typescript": "5.6.3"
+  }
+}

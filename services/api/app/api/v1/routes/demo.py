@@ -5,13 +5,13 @@ from sqlalchemy.orm import Session
 
 from app.api.v1.routes.clinics import ensure_demo_clinic
 from app.api.v1.routes.consents import approve_consent
+from app.api.v1.routes.doctors import ensure_demo_doctor
 from app.api.v1.routes.external import validate_external_access
 from app.api.v1.routes.patients import ensure_demo_medical_data, ensure_demo_patient
 from app.db.database import get_db
 from app.models.access_request import AccessRequest
 from app.models.audit_log import AuditLog
 from app.models.consent import Consent
-from app.models.doctor import Doctor
 from app.models.medical_data import MedicalData
 from app.schemas.access_request import AccessRequestResponse
 from app.schemas.audit_log import AuditLogResponse
@@ -19,26 +19,6 @@ from app.schemas.consent import ConsentApproveRequest, ConsentResponse
 
 
 router = APIRouter()
-
-
-def ensure_demo_doctor(db: Session) -> Doctor:
-    ensure_demo_clinic(db)
-    demo_doctor = db.get(Doctor, "doctor_ana")
-
-    if demo_doctor is None:
-        demo_doctor = Doctor(
-            id="doctor_ana",
-            name="Dra. Ana Martins",
-            crm="CRM-SP 123456",
-            authorized=True,
-            crm_status="active",
-            clinic_id="clinic_neurorio",
-        )
-        db.add(demo_doctor)
-        db.commit()
-        db.refresh(demo_doctor)
-
-    return demo_doctor
 
 
 def ensure_base_demo_data(db: Session) -> tuple:

@@ -82,10 +82,19 @@ def ensure_demo_medical_data(db: Session) -> None:
     ensure_demo_patient(db)
 
     for item in DEMO_MEDICAL_DATA:
-        if db.get(MedicalData, item["id"]) is not None:
+        encrypted_payload = item["encrypted_payload"]
+        data_hash = sha256(encrypted_payload.encode("utf-8")).hexdigest()
+        medical_data = db.get(MedicalData, item["id"])
+
+        if medical_data is not None:
+            medical_data.patient_id = "patient_rose"
+            medical_data.category = item["category"]
+            medical_data.label = item["label"]
+            medical_data.encrypted_payload = encrypted_payload
+            medical_data.data_hash = data_hash
+            medical_data.sensitivity = item["sensitivity"]
             continue
 
-        encrypted_payload = item["encrypted_payload"]
         db.add(
             MedicalData(
                 id=item["id"],
@@ -93,7 +102,7 @@ def ensure_demo_medical_data(db: Session) -> None:
                 category=item["category"],
                 label=item["label"],
                 encrypted_payload=encrypted_payload,
-                data_hash=sha256(encrypted_payload.encode("utf-8")).hexdigest(),
+                data_hash=data_hash,
                 sensitivity=item["sensitivity"],
             )
         )

@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 from app.api.v1.routes import access_requests
 from app.api.v1.routes import audit_logs
+from app.api.v1.routes import auth
 from app.api.v1.routes import clinics, doctors, patients
 from app.api.v1.routes import consents
 from app.api.v1.routes import demo
@@ -22,6 +23,7 @@ api_router.include_router(
     tags=["access-requests"],
 )
 api_router.include_router(audit_logs.router, tags=["audit-logs"])
+api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
 api_router.include_router(consents.router, prefix="/consents", tags=["consents"])
 api_router.include_router(demo.router, prefix="/demo", tags=["demo"])
 api_router.include_router(external.router, prefix="/external", tags=["external"])

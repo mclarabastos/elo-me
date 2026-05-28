@@ -1,5 +1,7 @@
 from fastapi import APIRouter
 
+from app.api.v1.routes.auth import SUPPORTED_PROVIDERS
+from app.schemas.auth_identity import ALLOWED_AUTH_ROLES
 from app.core.config import settings
 
 
@@ -69,6 +71,72 @@ def get_frontend_contract() -> dict[str, object]:
             "O frontend não deve chamar diretamente dados sensíveis.",
             "O frontend deve priorizar os endpoints /frontend e /demo.",
             "Nenhum endpoint retorna payload criptografado sensível.",
+        ],
+    }
+
+
+@router.get("/auth-contract")
+def get_auth_contract() -> dict[str, object]:
+    return {
+        "consumer": "frontend",
+        "mainEndpoint": {
+            "method": "POST",
+            "path": "/auth/wallet-session",
+            "description": (
+                "Registra ou atualiza no backend uma identidade já autenticada "
+                "no frontend por wallet abstraction."
+            ),
+        },
+        "requestExample": {
+            "provider": "privy",
+            "provider_user_id": "did:privy:demo_user_123",
+            "email": "roseane@example.com",
+            "phone": None,
+            "wallet_address": "0x5547E43EF39aD62668005aA861Db8556564cEc09",
+            "display_name": "Roseane Carreiro",
+            "role": "patient",
+        },
+        "responseExample": {
+            "id": "auth_demo1234",
+            "provider": "privy",
+            "provider_user_id": "did:privy:demo_user_123",
+            "email": "roseane@example.com",
+            "phone": None,
+            "wallet_address": "0x5547E43EF39aD62668005aA861Db8556564cEc09",
+            "display_name": "Roseane Carreiro",
+            "role": "patient",
+            "available_actions": [
+                "view_own_medical_data",
+                "approve_consent",
+                "revoke_consent",
+                "view_audit_logs",
+                "manage_emergency_profile",
+            ],
+            "message": "Wallet abstraction session registered successfully.",
+        },
+        "requiredFields": [
+            "provider",
+            "provider_user_id",
+            "wallet_address",
+            "role",
+        ],
+        "optionalFields": [
+            "email",
+            "phone",
+            "display_name",
+        ],
+        "acceptedRoles": sorted(ALLOWED_AUTH_ROLES),
+        "acceptedProviders": [provider["id"] for provider in SUPPORTED_PROVIDERS],
+        "securityNotes": [
+            "O login real acontece no frontend com provider de wallet abstraction.",
+            "O frontend nunca deve enviar chave privada.",
+            "O backend nunca solicita seed phrase.",
+            "A pessoa usuária não precisa conectar MetaMask manualmente.",
+            "Para demo, o frontend pode mockar wallet_address.",
+            (
+                "Para produção, o frontend deve obter wallet_address do "
+                "provider real."
+            ),
         ],
     }
 

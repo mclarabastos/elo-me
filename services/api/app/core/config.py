@@ -18,6 +18,10 @@ class Settings(BaseSettings):
         validation_alias="BACKEND_CORS_ORIGINS",
     )
     PORT: int = 8000
+    ELO_CONSENT_REGISTRY_ADDRESS: str | None = None
+    ELO_CHAIN_ID: int | None = None
+    ELO_CHAIN_NAME: str | None = None
+    ELO_BLOCK_EXPLORER_URL: str | None = None
 
     model_config = SettingsConfigDict(
         env_file=".env",
