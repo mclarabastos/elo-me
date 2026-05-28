@@ -158,7 +158,7 @@ Variáveis opcionais disponíveis no backend para uso futuro:
 ELO_CONSENT_REGISTRY_ADDRESS=0x5eD86192F0521f35C8b93BD1D774Aa32ADA0E444
 ELO_CHAIN_ID=421614
 ELO_CHAIN_NAME=arbitrumSepolia
-ELO_BLOCK_EXPLORER_URL=https://sepolia.arbiscan.io/address/0x5eD86192F0521f35C8b93BD1D774Aa32ADA0E444
+ELO_BLOCK_EXPLORER_URL=https://sepolia.arbiscan.io
 ```
 
 Essas variáveis não são segredos e não incluem private key, RPC privado ou token. A integração on-chain real fica para uma etapa futura.
@@ -207,6 +207,30 @@ Perfis suportados:
 - `doctor`: pode solicitar acesso, ver dados autorizados e validar status de consentimento.
 - `clinic`: pode gerenciar médicas/médicos, solicitar acesso e ver logs de conformidade.
 - `admin`: pode ver visão geral do sistema, gerenciar registry e ver logs de auditoria.
+
+## Wallet abstraction handoff para frontend
+
+A Clara pode integrar a tela de login sem precisar escolher agora um SDK definitivo no backend. O frontend pode usar Privy, Web3Auth/MetaMask Embedded Wallets, Dynamic ou solução equivalente para autenticar com Google, e-mail, telefone ou passkey.
+
+O backend não faz OAuth real, não cria senha e não recebe segredo do provider. Ele recebe apenas a identidade já autenticada pelo frontend junto com a `wallet_address` criada ou conectada pela solução de wallet abstraction.
+
+Endpoints de handoff:
+
+- `GET /auth/wallet-abstraction/config`: retorna providers sugeridos, métodos de login, exigência de wallet e dados públicos da rede/contrato.
+- `GET /integration/auth-contract`: descreve o payload que o frontend deve enviar para `POST /auth/wallet-session`.
+- `GET /auth/demo-wallet-payloads`: retorna payloads prontos para demo local sem integrar provider real.
+- `GET /auth/wallet-abstraction/ux-copy`: retorna textos prontos para a tela de login.
+
+Fluxo recomendado para o frontend:
+
+1. Chamar `GET /auth/wallet-abstraction/config` para montar opções de provider e rede.
+2. Exibir login com Google, e-mail, telefone ou passkey.
+3. Em demo, usar `GET /auth/demo-wallet-payloads` para simular personas.
+4. Em produção, obter `provider_user_id` e `wallet_address` do provider real.
+5. Enviar o payload final para `POST /auth/wallet-session`.
+6. Usar `GET /auth/roles` ou `available_actions` da sessão para adaptar a interface por perfil.
+
+O frontend nunca deve enviar chave privada, seed phrase, token secreto do provider ou payload médico sensível. A pessoa usuária não precisa entender blockchain nem conectar MetaMask manualmente.
 
 ## 4. Status atual dos testes
 
@@ -324,6 +348,10 @@ Campos principais:
 | GET | `/auth/wallet-address/{wallet_address}` | Buscar identidade por wallet | frontend/backend |
 | PATCH | `/auth/wallet-session/{identity_id}/role` | Atualizar perfil de acesso | frontend/backend |
 | GET | `/auth/roles` | Listar perfis e ações disponíveis | frontend |
+| GET | `/auth/wallet-abstraction/config` | Obter providers, métodos de login e rede pública | frontend |
+| GET | `/auth/demo-wallet-payloads` | Obter payloads mockados para demo | frontend/demo |
+| GET | `/auth/wallet-abstraction/ux-copy` | Obter textos da tela de login | frontend |
+| GET | `/integration/auth-contract` | Obter contrato de integração de auth | frontend |
 | GET | `/users/demo` | Obter/criar paciente demo | frontend |
 | GET | `/clinics/demo` | Obter/criar clínica demo | frontend/demo |
 | GET | `/doctors/demo` | Obter/criar médica demo | frontend/demo |

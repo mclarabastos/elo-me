@@ -3,6 +3,7 @@ from uuid import uuid4
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.core.time import utc_now
 from app.db.database import get_db
 from app.models.auth_identity import AuthIdentity
@@ -16,6 +17,33 @@ from app.schemas.auth_identity import (
 
 
 router = APIRouter()
+
+DEFAULT_CONSENT_REGISTRY_ADDRESS = "0x5eD86192F0521f35C8b93BD1D774Aa32ADA0E444"
+DEFAULT_CHAIN_ID = 421614
+DEFAULT_CHAIN_NAME = "Arbitrum Sepolia"
+DEFAULT_BLOCK_EXPLORER_URL = "https://sepolia.arbiscan.io"
+
+SUPPORTED_PROVIDERS = [
+    {
+        "id": "privy",
+        "name": "Privy",
+        "status": "recommended",
+        "loginMethods": ["google", "email", "phone", "passkey"],
+    },
+    {
+        "id": "web3auth",
+        "name": "Web3Auth / MetaMask Embedded Wallets",
+        "status": "supported",
+        "loginMethods": ["google", "email", "phone"],
+    },
+    {
+        "id": "dynamic",
+        "name": "Dynamic",
+        "status": "supported",
+        "loginMethods": ["google", "email", "phone", "passkey"],
+    },
+]
+SUPPORTED_LOGIN_METHODS = ["google", "email", "phone", "passkey"]
 
 ROLE_ACTIONS = {
     "patient": [
@@ -48,6 +76,27 @@ ROLE_DESCRIPTIONS = {
     "clinic": "Clínica que gerencia solicitações e conformidade.",
     "admin": "Perfil administrativo para visão geral do sistema.",
 }
+
+
+def public_chain_name() -> str:
+    if settings.ELO_CHAIN_NAME == "arbitrumSepolia":
+        return DEFAULT_CHAIN_NAME
+
+    return settings.ELO_CHAIN_NAME or DEFAULT_CHAIN_NAME
+
+
+def public_network_config() -> dict[str, object]:
+    return {
+        "name": public_chain_name(),
+        "chainId": settings.ELO_CHAIN_ID or DEFAULT_CHAIN_ID,
+        "contractAddress": (
+            settings.ELO_CONSENT_REGISTRY_ADDRESS
+            or DEFAULT_CONSENT_REGISTRY_ADDRESS
+        ),
+        "blockExplorerUrl": (
+            settings.ELO_BLOCK_EXPLORER_URL or DEFAULT_BLOCK_EXPLORER_URL
+        ),
+    }
 
 
 def get_identity_or_404(db: Session, identity_id: str) -> AuthIdentity:
@@ -206,6 +255,118 @@ def get_auth_roles() -> dict[str, object]:
         "note": (
             "Real login happens in the frontend through wallet abstraction "
             "providers such as Privy, Web3Auth or Dynamic. The backend never "
-            "receives a private key."
+            "receives signing secrets."
         ),
+    }
+
+
+@router.get("/wallet-abstraction/config")
+def get_wallet_abstraction_config() -> dict[str, object]:
+    return {
+        "authMode": "wallet_abstraction",
+        "realLoginHandledBy": "frontend",
+        "backendRole": "receives authenticated identity and wallet address",
+        "supportedProviders": SUPPORTED_PROVIDERS,
+        "supportedLoginMethods": SUPPORTED_LOGIN_METHODS,
+        "requiresWalletAddress": True,
+        "requiresPrivateKey": False,
+        "network": public_network_config(),
+    }
+
+
+@router.get("/demo-wallet-payloads")
+def get_demo_wallet_payloads() -> dict[str, object]:
+    return {
+        "items": [
+            {
+                "label": "Entrar com Google como Paciente",
+                "loginMethod": "google",
+                "payload": {
+                    "provider": "privy",
+                    "provider_user_id": "did:privy:demo_patient_google",
+                    "email": "roseane@example.com",
+                    "phone": None,
+                    "wallet_address": "0x1111111111111111111111111111111111111111",
+                    "display_name": "Roseane Carreiro",
+                    "role": "patient",
+                },
+            },
+            {
+                "label": "Entrar com e-mail como Médica",
+                "loginMethod": "email",
+                "payload": {
+                    "provider": "web3auth",
+                    "provider_user_id": "web3auth:demo_doctor_email",
+                    "email": "ana.martins@example.com",
+                    "phone": None,
+                    "wallet_address": "0x2222222222222222222222222222222222222222",
+                    "display_name": "Dra. Ana Martins",
+                    "role": "doctor",
+                },
+            },
+            {
+                "label": "Entrar com telefone como Clínica",
+                "loginMethod": "phone",
+                "payload": {
+                    "provider": "dynamic",
+                    "provider_user_id": "dynamic:demo_clinic_phone",
+                    "email": None,
+                    "phone": "+5521999999999",
+                    "wallet_address": "0x3333333333333333333333333333333333333333",
+                    "display_name": "Clínica NeuroRio",
+                    "role": "clinic",
+                },
+            },
+            {
+                "label": "Entrar com passkey como Admin",
+                "loginMethod": "passkey",
+                "payload": {
+                    "provider": "privy",
+                    "provider_user_id": "did:privy:demo_admin_passkey",
+                    "email": "admin@example.com",
+                    "phone": None,
+                    "wallet_address": "0x4444444444444444444444444444444444444444",
+                    "display_name": "Admin Elo.me",
+                    "role": "admin",
+                },
+            },
+        ],
+        "note": (
+            "Payloads prontos para demo local sem integrar um provider real. "
+            "Em produção, o frontend deve obter a wallet do provider escolhido."
+        ),
+    }
+
+
+@router.get("/wallet-abstraction/ux-copy")
+def get_wallet_abstraction_ux_copy() -> dict[str, object]:
+    return {
+        "headline": "Entre no Elo.me sem precisar entender blockchain",
+        "subtitle": (
+            "Use Google, e-mail, telefone ou passkey. Sua wallet é criada de "
+            "forma invisível para proteger seus consentimentos."
+        ),
+        "securityNotes": [
+            "O Elo.me nunca pede sua chave privada.",
+            "Seus dados médicos não ficam públicos na blockchain.",
+            "A blockchain registra apenas permissões, hashes e auditoria.",
+        ],
+        "loginButtons": [
+            {
+                "method": "google",
+                "label": "Entrar com Google",
+            },
+            {
+                "method": "email",
+                "label": "Entrar com e-mail",
+            },
+            {
+                "method": "phone",
+                "label": "Entrar com telefone",
+            },
+            {
+                "method": "passkey",
+                "label": "Entrar com passkey",
+            },
+        ],
     }
