@@ -3,6 +3,7 @@ from hashlib import sha256
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.core.text import normalize_text
 from app.db.database import get_db
 from app.models.access_request import AccessRequest
 from app.models.medical_data import MedicalData
@@ -60,20 +61,27 @@ DEMO_MEDICAL_DATA = [
 ]
 
 
+DEMO_PATIENT = {
+    "id": "patient_rose",
+    "name": "Roseane Carreiro",
+    "email": "roseane@demo.elome",
+    "role": "patient",
+    "wallet_address": "0x0000000000000000000000000000000000000001",
+}
+
+
 def ensure_demo_patient(db: Session) -> User:
     demo_patient = db.get(User, "patient_rose")
 
     if demo_patient is None:
-        demo_patient = User(
-            id="patient_rose",
-            name="Roseane Carreiro",
-            email="roseane@demo.elome",
-            role="patient",
-            wallet_address="0x0000000000000000000000000000000000000001",
-        )
+        demo_patient = User(**DEMO_PATIENT)
         db.add(demo_patient)
-        db.commit()
-        db.refresh(demo_patient)
+    else:
+        for field, value in DEMO_PATIENT.items():
+            setattr(demo_patient, field, normalize_text(value) if isinstance(value, str) else value)
+
+    db.commit()
+    db.refresh(demo_patient)
 
     return demo_patient
 

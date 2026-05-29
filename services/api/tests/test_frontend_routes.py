@@ -71,6 +71,28 @@ def test_frontend_audit_timeline() -> None:
     assert response.status_code == 200
     assert "items" in data
     assert isinstance(data["items"], list)
+    assert len(data["items"]) >= 1
+    assert {
+        "id",
+        "title",
+        "description",
+        "status",
+        "actor",
+        "timestamp",
+        "type",
+    }.issubset(data["items"][0])
+    assert_frontend_safe_payload(data)
+
+
+def test_frontend_audit_timeline_has_demo_fallback_after_reset() -> None:
+    with TestClient(app) as client:
+        client.post("/demo/reset-local-demo-data")
+        response = client.get("/frontend/audit-timeline")
+
+    data = response.json()
+    assert response.status_code == 200
+    assert len(data["items"]) >= 1
+    assert data["items"][0]["type"] == "identity"
     assert_frontend_safe_payload(data)
 
 
@@ -91,4 +113,14 @@ def test_demo_overview_has_no_mojibake_or_encrypted_payload() -> None:
     data = response.json()
     assert response.status_code == 200
     assert data["project"] == "Elo.me"
+    assert_frontend_safe_payload(data)
+
+
+def test_integration_auth_contract_has_no_mojibake_or_encrypted_payload() -> None:
+    with TestClient(app) as client:
+        response = client.get("/integration/auth-contract")
+
+    data = response.json()
+    assert response.status_code == 200
+    assert data["mainEndpoint"]["path"] == "/auth/wallet-session"
     assert_frontend_safe_payload(data)

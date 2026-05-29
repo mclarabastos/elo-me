@@ -8,6 +8,7 @@ from app.api.v1.routes.consents import approve_consent
 from app.api.v1.routes.doctors import ensure_demo_doctor
 from app.api.v1.routes.external import validate_external_access
 from app.api.v1.routes.patients import ensure_demo_medical_data, ensure_demo_patient
+from app.core.text import normalize_payload_text, normalize_text
 from app.db.database import get_db
 from app.models.access_request import AccessRequest
 from app.models.audit_log import AuditLog
@@ -44,14 +45,16 @@ def serialize_audit_log(audit_log: AuditLog | None) -> dict | None:
     if audit_log is None:
         return None
 
-    return AuditLogResponse.model_validate(audit_log).model_dump(mode="json")
+    return normalize_payload_text(
+        AuditLogResponse.model_validate(audit_log).model_dump(mode="json")
+    )
 
 
 def medical_data_summary(medical_data: MedicalData) -> dict[str, str]:
     return {
         "category": medical_data.category,
-        "label": medical_data.label,
-        "sensitivity": medical_data.sensitivity,
+        "label": normalize_text(medical_data.label),
+        "sensitivity": normalize_text(medical_data.sensitivity),
     }
 
 
@@ -115,7 +118,7 @@ def get_demo_overview(db: Session = Depends(get_db)) -> dict[str, object]:
     )
     last_audit_log = get_latest_audit_log(db)
 
-    return {
+    return normalize_payload_text({
         "project": "Elo.me",
         "description": (
             "Prontuário médico portátil com consentimento verificável, "
@@ -143,7 +146,7 @@ def get_demo_overview(db: Session = Depends(get_db)) -> dict[str, object]:
         ],
         "lastAuditLog": serialize_audit_log(last_audit_log),
         "availableFlows": ["authorized", "denied"],
-    }
+    })
 
 
 @router.post("/run-authorized-flow", status_code=status.HTTP_201_CREATED)
