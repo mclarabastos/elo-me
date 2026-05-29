@@ -27,8 +27,27 @@ def ensure_base_demo_data(db: Session) -> tuple:
     clinic = ensure_demo_clinic(db)
     doctor = ensure_demo_doctor(db)
     ensure_demo_medical_data(db)
+    normalize_demo_audit_logs(db)
 
     return patient, clinic, doctor
+
+
+def normalize_demo_audit_logs(db: Session) -> None:
+    audit_logs = (
+        db.query(AuditLog)
+        .filter(AuditLog.patient_id == "patient_rose")
+        .all()
+    )
+    changed = False
+
+    for audit_log in audit_logs:
+        normalized_reason = normalize_text(audit_log.reason)
+        if normalized_reason != audit_log.reason:
+            audit_log.reason = normalized_reason
+            changed = True
+
+    if changed:
+        db.commit()
 
 
 def serialize_access_request(access_request: AccessRequest) -> dict:
@@ -178,7 +197,7 @@ def run_authorized_flow(db: Session = Depends(get_db)) -> dict[str, object]:
         .all()
     )
 
-    return {
+    return normalize_payload_text({
         "flow": "authorized",
         "message": "Fluxo autorizado executado com sucesso.",
         "accessRequest": serialize_access_request(access_request),
@@ -188,7 +207,7 @@ def run_authorized_flow(db: Session = Depends(get_db)) -> dict[str, object]:
             medical_data_summary(item) for item in authorized_medical_data
         ],
         "auditLog": serialize_audit_log(audit_log),
-    }
+    })
 
 
 @router.post("/run-denied-flow", status_code=status.HTTP_201_CREATED)
@@ -218,7 +237,7 @@ def run_denied_flow(db: Session = Depends(get_db)) -> dict[str, object]:
         if scope not in external_validation["allowedScopes"]
     ]
 
-    return {
+    return normalize_payload_text({
         "flow": "denied",
         "message": "Fluxo negado executado com sucesso.",
         "accessRequest": serialize_access_request(access_request),
@@ -226,7 +245,7 @@ def run_denied_flow(db: Session = Depends(get_db)) -> dict[str, object]:
         "externalValidation": external_validation,
         "blockedScopes": blocked_scopes,
         "auditLog": serialize_audit_log(audit_log),
-    }
+    })
 
 
 @router.post("/reset-local-demo-data")
