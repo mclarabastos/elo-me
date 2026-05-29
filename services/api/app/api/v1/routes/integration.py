@@ -11,7 +11,7 @@ router = APIRouter()
 
 @router.get("/status")
 def get_integration_status() -> dict[str, object]:
-    return {
+    return normalize_payload_text({
         "project": "Elo.me",
         "apiStatus": "online",
         "environment": settings.APP_ENV,
@@ -22,12 +22,12 @@ def get_integration_status() -> dict[str, object]:
         "demoEndpointsAvailable": True,
         "frontendEndpointsAvailable": True,
         "creValidationEndpointAvailable": True,
-    }
+    })
 
 
 @router.get("/frontend-contract")
 def get_frontend_contract() -> dict[str, object]:
-    return {
+    return normalize_payload_text({
         "consumer": "frontend",
         "recommendedBaseUrlEnv": "NEXT_PUBLIC_API_URL",
         "endpoints": [
@@ -73,7 +73,7 @@ def get_frontend_contract() -> dict[str, object]:
             "O frontend deve priorizar os endpoints /frontend e /demo.",
             "Nenhum endpoint retorna payload criptografado sensível.",
         ],
-    }
+    })
 
 
 @router.get("/auth-contract")
@@ -144,7 +144,7 @@ def get_auth_contract() -> dict[str, object]:
 
 @router.get("/cre-contract")
 def get_cre_contract() -> dict[str, object]:
-    return {
+    return normalize_payload_text({
         "consumer": "chainlink-cre",
         "mainValidationEndpoint": {
             "method": "GET",
@@ -199,12 +199,12 @@ def get_cre_contract() -> dict[str, object]:
                 "resultado da orquestração."
             ),
         ],
-    }
+    })
 
 
 @router.get("/pitch-script-data")
 def get_pitch_script_data() -> dict[str, object]:
-    return {
+    return normalize_payload_text({
         "pitchFlow": [
             {
                 "step": 1,
@@ -245,4 +245,4 @@ def get_pitch_script_data() -> dict[str, object]:
             "Executar POST /demo/run-denied-flow",
             "Mostrar que acesso fora do consentimento é negado",
         ],
-    }
+    })

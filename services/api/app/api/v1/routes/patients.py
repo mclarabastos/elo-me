@@ -78,7 +78,11 @@ def ensure_demo_patient(db: Session) -> User:
         db.add(demo_patient)
     else:
         for field, value in DEMO_PATIENT.items():
-            setattr(demo_patient, field, normalize_text(value) if isinstance(value, str) else value)
+            setattr(
+                demo_patient,
+                field,
+                normalize_text(value) if isinstance(value, str) else value,
+            )
 
     db.commit()
     db.refresh(demo_patient)
