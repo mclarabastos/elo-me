@@ -8,6 +8,9 @@ FORBIDDEN_RESPONSE_TEXT = (
     "encrypted_payload",
     "SECRET_KEY",
     "DATABASE_URL",
+    "Ã",
+    "Â",
+    "�",
 )
 
 

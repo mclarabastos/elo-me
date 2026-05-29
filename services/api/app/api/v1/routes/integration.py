@@ -3,6 +3,7 @@ from fastapi import APIRouter
 from app.api.v1.routes.auth import SUPPORTED_PROVIDERS
 from app.schemas.auth_identity import ALLOWED_AUTH_ROLES
 from app.core.config import settings
+from app.core.text import normalize_payload_text
 
 
 router = APIRouter()
@@ -77,7 +78,7 @@ def get_frontend_contract() -> dict[str, object]:
 
 @router.get("/auth-contract")
 def get_auth_contract() -> dict[str, object]:
-    return {
+    return normalize_payload_text({
         "consumer": "frontend",
         "mainEndpoint": {
             "method": "POST",
@@ -138,7 +139,7 @@ def get_auth_contract() -> dict[str, object]:
                 "provider real."
             ),
         ],
-    }
+    })
 
 
 @router.get("/cre-contract")
