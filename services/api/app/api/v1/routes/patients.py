@@ -3,7 +3,7 @@ from hashlib import sha256
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.core.text import normalize_text
+from app.core.text import normalize_payload_text, normalize_text
 from app.db.database import get_db
 from app.models.access_request import AccessRequest
 from app.models.medical_data import MedicalData
@@ -157,3 +157,32 @@ def get_patient_access_requests(
         .order_by(AccessRequest.created_at.desc())
         .all()
     )
+
+
+@router.get(
+    "/{patient_id}/pending-requests",
+    response_model=list[AccessRequestResponse],
+)
+def get_patient_pending_requests(
+    patient_id: str,
+    db: Session = Depends(get_db),
+) -> list[dict[str, object]]:
+    patient = db.get(User, patient_id)
+
+    if patient is None:
+        raise HTTPException(status_code=404, detail="Patient not found")
+
+    access_requests = (
+        db.query(AccessRequest)
+        .filter(AccessRequest.patient_id == patient_id)
+        .filter(AccessRequest.status == "pending")
+        .order_by(AccessRequest.created_at.desc())
+        .all()
+    )
+
+    return [
+        normalize_payload_text(
+            AccessRequestResponse.model_validate(item).model_dump(mode="json")
+        )
+        for item in access_requests
+    ]

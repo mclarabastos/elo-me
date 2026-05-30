@@ -2,8 +2,11 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.api.v1.routes.clinics import ensure_demo_clinic
+from app.core.text import normalize_payload_text
 from app.db.database import get_db
+from app.models.access_request import AccessRequest
 from app.models.doctor import Doctor
+from app.schemas.access_request import AccessRequestResponse
 from app.schemas.doctor import DoctorResponse
 
 
@@ -41,3 +44,26 @@ def ensure_demo_doctor(db: Session) -> Doctor:
 @router.get("/demo", response_model=DoctorResponse)
 def get_demo_doctor(db: Session = Depends(get_db)) -> Doctor:
     return ensure_demo_doctor(db)
+
+
+@router.get(
+    "/{doctor_id}/sent-requests",
+    response_model=list[AccessRequestResponse],
+)
+def get_doctor_sent_requests(
+    doctor_id: str,
+    db: Session = Depends(get_db),
+) -> list[dict[str, object]]:
+    access_requests = (
+        db.query(AccessRequest)
+        .filter(AccessRequest.doctor_id == doctor_id)
+        .order_by(AccessRequest.created_at.desc())
+        .all()
+    )
+
+    return [
+        normalize_payload_text(
+            AccessRequestResponse.model_validate(item).model_dump(mode="json")
+        )
+        for item in access_requests
+    ]

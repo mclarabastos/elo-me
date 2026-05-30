@@ -232,6 +232,60 @@ Fluxo recomendado para o frontend:
 
 O frontend nunca deve enviar chave privada, seed phrase, token secreto do provider ou payload médico sensível. A pessoa usuária não precisa entender blockchain nem conectar MetaMask manualmente.
 
+## Jornada do usuário, notificações e modelo de negócios
+
+O Elo.me organiza a experiência por perfil, mantendo a complexidade blockchain fora da jornada principal. Paciente, médica, clínica ou admin entram com login tradicional no frontend. A wallet fica abstraída por um provider como Privy, Web3Auth, Dynamic ou equivalente, e o backend recebe apenas a identidade autenticada, a role e a `wallet_address`.
+
+Fluxo de solicitação de acesso:
+
+1. Médica ou clínica solicita acesso a parte do prontuário.
+2. O backend cria uma `AccessRequest`.
+3. A paciente recebe uma `Notification` na plataforma, com possibilidade de e-mail ou SMS mockado.
+4. A paciente revisa quem pediu acesso, clínica, médica, escopos, duração e finalidade.
+5. A paciente aprova tudo, aprova parcialmente ou recusa.
+6. O consentimento aprovado pode ser validado pela API externa e pelo Chainlink CRE.
+7. Apenas os dados autorizados são liberados.
+8. A tentativa fica registrada para auditoria.
+
+Onde cada interação fica registrada:
+
+- Banco off-chain: perfis, sessões, notificações, solicitações de acesso, dados necessários para UX, status de leitura, histórico operacional e payloads criptografados ou mockados.
+- Blockchain: hashes, provas, eventos, consentimentos verificáveis, validações de acesso, revogações e auditoria pública sem dados sensíveis.
+- Chainlink CRE: orquestra validações, consulta a API externa, pode ler o contrato e futuramente escrever eventos verificáveis.
+
+Endpoints de jornada e notificações:
+
+| Método | Rota | Uso |
+| --- | --- | --- |
+| POST | `/access-requests/demo-notify-patient` | Criar solicitação demo e notificar a paciente |
+| GET | `/notifications/{identity_id}` | Listar notificações da identidade autenticada |
+| PATCH | `/notifications/{notification_id}/read` | Marcar notificação como lida |
+| GET | `/patients/{patient_id}/pending-requests` | Listar solicitações pendentes da paciente |
+| GET | `/doctors/{doctor_id}/sent-requests` | Listar solicitações enviadas pela médica |
+| GET | `/clinics/{clinic_id}/sent-requests` | Listar solicitações enviadas pela clínica |
+| GET | `/user-journey/routes` | Ver jornadas por perfil |
+| GET | `/user-journey/storage-map` | Ver mapa entre off-chain, blockchain e CRE |
+
+Modelo comercial inicial:
+
+- SaaS premium B2B2C para saúde privada.
+- Alvo inicial: pacientes com plano de saúde, pacientes premium, consultas particulares e clínicas privadas pequenas e médias.
+- Clínicas privadas pagam para oferecer Elo.me aos pacientes.
+- Pacientes premium também podem assinar diretamente.
+- Operadoras, hospitais, laboratórios e redes de saúde são expansão enterprise.
+
+Endpoints de modelo de negócio:
+
+| Método | Rota | Uso |
+| --- | --- | --- |
+| GET | `/business/model` | Posicionamento, problema, proposta de valor, planos e go-to-market |
+| GET | `/business/market-sizing` | TAM, SAM, SOM e simulação de receita |
+| GET | `/business/break-even` | Cenários de faturamento mínimo |
+| GET | `/business/pitch-business-data` | Textos comerciais para slides |
+| GET | `/integration/business-contract` | Handoff para Clara montar páginas comerciais |
+
+Os números financeiros e market sizing são mockados para pitch. Eles usam como base documentada a população estimada do Brasil e beneficiários de planos privados de assistência médica, mas não representam promessa financeira.
+
 ## 4. Status atual dos testes
 
 O backend atualmente possui testes automatizados para health, usuário demo, dados demo, access requests, consents, authorized medical data, external CRE API, audit logs e demo routes.
@@ -352,6 +406,19 @@ Campos principais:
 | GET | `/auth/demo-wallet-payloads` | Obter payloads mockados para demo | frontend/demo |
 | GET | `/auth/wallet-abstraction/ux-copy` | Obter textos da tela de login | frontend |
 | GET | `/integration/auth-contract` | Obter contrato de integração de auth | frontend |
+| POST | `/access-requests/demo-notify-patient` | Criar solicitação demo e notificação | frontend/demo |
+| GET | `/notifications/{identity_id}` | Listar notificações | frontend |
+| PATCH | `/notifications/{notification_id}/read` | Marcar notificação como lida | frontend |
+| GET | `/patients/{patient_id}/pending-requests` | Listar solicitações pendentes | frontend |
+| GET | `/doctors/{doctor_id}/sent-requests` | Listar solicitações da médica | frontend |
+| GET | `/clinics/{clinic_id}/sent-requests` | Listar solicitações da clínica | frontend |
+| GET | `/user-journey/routes` | Jornadas por perfil | frontend/pitch |
+| GET | `/user-journey/storage-map` | Mapa off-chain/blockchain/CRE | frontend/pitch |
+| GET | `/business/model` | Modelo SaaS premium | frontend/pitch |
+| GET | `/business/market-sizing` | TAM, SAM, SOM e receita simulada | frontend/pitch |
+| GET | `/business/break-even` | Cenários de sustentação | frontend/pitch |
+| GET | `/business/pitch-business-data` | Frases comerciais para pitch | frontend/pitch |
+| GET | `/integration/business-contract` | Contrato de handoff comercial | frontend |
 | GET | `/users/demo` | Obter/criar paciente demo | frontend |
 | GET | `/clinics/demo` | Obter/criar clínica demo | frontend/demo |
 | GET | `/doctors/demo` | Obter/criar médica demo | frontend/demo |
