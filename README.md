@@ -75,8 +75,6 @@ Fluxo completo de segunda opinião médica com consentimento seletivo:
 | 9 | Acesso liberado apenas para os dados autorizados |
 | 10 | Evento de auditoria registrado on-chain |
 
-> ZK Proofs estão fora do escopo do MVP. O foco é o fluxo CRE funcional com consentimento granular verificável.
-
 ---
 
 ## Estrutura do repositório
@@ -165,16 +163,6 @@ CONTRACT_ADDRESS=0x5eD86192F0521f35C8b93BD1D774Aa32ADA0E444
 | `pnpm build` | Build de produção |
 | `pnpm lint` | Lint geral |
 | `pnpm test:api` | Testes do backend |
-
----
-
-## Limitações conhecidas do MVP
-
-- Os serviços internos do backend (`services/`) são stubs — a lógica de negócio está diretamente nas rotas para simplificar a demo.
-- O `packages/design-system` é um scaffold ainda não integrado ao frontend.
-- Os testes do backend (`tests/`) são placeholders — a cobertura real está no fluxo de demo via Swagger.
-- O banco de dados usa SQLite em vez de PostgreSQL para facilitar o deploy de demo.
-- O frontend não tem autenticação real — as identidades são fixas para a demo.
 
 ---
 
