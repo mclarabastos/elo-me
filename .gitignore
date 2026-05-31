@@ -1,10 +1,11 @@
-node_modules
+node_modules/
 
-node_modules
 .next
 .env
 .env.local
-
+secrets.yaml
+bun.lock
+*.pptx
 
 *.tsbuildinfo
 
@@ -15,8 +16,6 @@ __pycache__/
 *.pyd
 services/api/.venv/
 
-
 # Local database
 services/api/elome.db
 *.db
-
