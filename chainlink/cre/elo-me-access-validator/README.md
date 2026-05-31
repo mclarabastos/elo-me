@@ -1,27 +1,28 @@
-# Hello World (TypeScript)
+# elo-me-access-validator
 
-This template provides a blank TypeScript workflow example. It aims to give a starting point for writing a workflow from scratch and to get started with local simulation.
+Workflow Chainlink CRE que valida consentimentos de acesso a prontuários médicos via DON (Decentralized Oracle Network).
 
-Steps to run the example
+## Executar simulação
 
-## 1. Update .env file
-
-You need to add a private key to env file. This is specifically required if you want to simulate chain writes. For that to work the key should be valid and funded.
-If your workflow does not do any chain write then you can just put any dummy key as a private key. e.g.
-```
-CRE_ETH_PRIVATE_KEY=0000000000000000000000000000000000000000000000000000000000000001
+```bash
+# Da raiz do repositório
+cre workflow simulate ./chainlink/cre/elo-me-access-validator --target=staging-settings
 ```
 
-## 2. Install dependencies
+## Instalar dependências
+
 ```bash
 bun install
 ```
 
-## 3. Simulate the workflow
-Run the command from <b>project root directory</b>
+## Executar testes
 
 ```bash
-cre workflow simulate <path-to-workflow> --target=staging-settings
+bun test
 ```
 
-It is recommended to look into other existing examples to see how to write a workflow. You can generate them by running the `cre init` command.
+## Como funciona
+
+O workflow consulta o backend Elo.me a cada 30 segundos, verifica se o consentimento do paciente está ativo para o médico/clínica solicitante, e registra a decisão (`AUTHORIZED` ou `DENIED`) on-chain via EloConsentRegistry na Arbitrum Sepolia.
+
+Consulte o [README do CRE](../README.md) para detalhes completos.
