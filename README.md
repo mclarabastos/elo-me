@@ -2,9 +2,20 @@
 
 Prontuário médico portátil com consentimento verificável, privacidade seletiva e auditoria em blockchain.
 
-O paciente paga por consultas e exames, mas raramente tem controle real sobre seu próprio histórico. Esse histórico fica preso em sistemas fechados, papéis e clínicas — e quando ele muda de médico, precisa reconstruir tudo do zero.
+O paciente paga por consultas e exames, mas raramente tem controle real sobre seu próprio histórico. Esse histórico fica preso em sistemas fechados, papéis e clínicas, e quando ele muda de médico, precisa reconstruir tudo do zero.
 
 O Elo.me resolve isso: o paciente possui seu histórico, escolhe o que compartilhar, com quem e por quanto tempo. O médico acessa o que é clinicamente relevante. Nada além disso.
+
+---
+
+## Demo
+
+| Recurso                     | URL                                                                                                                    |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Frontend                    | _em breve_                                                                                                             |
+| Backend API                 | https://elo-me.onrender.com                                                                                            |
+| API Docs (Swagger)          | https://elo-me.onrender.com/docs                                                                                       |
+| Contrato EloConsentRegistry | [`0x5eD8...0E444`](https://sepolia.arbiscan.io/address/0x5eD86192F0521f35C8b93BD1D774Aa32ADA0E444) na Arbitrum Sepolia |
 
 ---
 
@@ -26,25 +37,10 @@ O prontuário real nunca vai para a blockchain. Apenas a prova de que ele existe
 | -------------- | ------------------------------------------------------- |
 | Frontend       | Next.js + React + TypeScript + Tailwind CSS + shadcn/ui |
 | Backend        | FastAPI + Python + SQLAlchemy                           |
-| Banco de dados | PostgreSQL                                              |
+| Banco de dados | SQLite (demo) / PostgreSQL (produção)                   |
 | Armazenamento  | IPFS / Pinata                                           |
 | Orquestração   | Chainlink CRE                                           |
-| Blockchain     | EVM (escopo a definir no MVP)                           |
-
----
-
-## Estrutura do repositório
-
-```txt
-.
-├── apps/web                  # Frontend Next.js
-├── services/api              # Backend FastAPI
-├── packages/design-system    # Tokens e componentes compartilhados
-├── chainlink/cre             # Workflows Chainlink CRE
-├── chainlink/contracts       # Contratos opcionais
-├── infra/ipfs                # Configuração IPFS/Pinata
-└── docs                      # Documentação técnica
-```
+| Blockchain     | Arbitrum Sepolia (EVM)                                  |
 
 ---
 
@@ -69,42 +65,63 @@ Fluxo completo de segunda opinião médica com consentimento seletivo:
 
 ---
 
+## Estrutura do repositório
+
+```
+.
+├── apps/web                        # Frontend Next.js
+├── services/api                    # Backend FastAPI
+├── chainlink/cre                   # Workflow Chainlink CRE (elo-me-access-validator)
+├── chainlink/contracts             # Contrato EloConsentRegistry (Solidity)
+├── infra/ipfs                      # Configuração IPFS/Pinata
+└── docs                            # Documentação técnica
+```
+
+---
+
 ## Início rápido
 
-**Pré-requisitos:** Node.js 20+, pnpm 9+, Python 3.11+, PostgreSQL, conta Pinata, ferramentas Chainlink CRE.
+**Pré-requisitos:** Node.js 20+, pnpm 9+, Python 3.11+, conta Pinata, ferramentas Chainlink CRE.
 
 ```bash
 pnpm install
 cp .env.example .env
+# preencha as variáveis no .env antes de continuar
 ```
 
-Frontend:
+**Frontend:**
 
 ```bash
 pnpm dev:web
 ```
 
-Backend:
+**Backend:**
 
 ```bash
 cd services/api
-python -m venv .venv && source .venv/bin/activate
+python -m venv .venv && source .venv/bin/activate  # Windows: .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 uvicorn app.main:app --reload
+```
+
+**Chainlink CRE (simulação):**
+
+```bash
+cd chainlink/cre/elo-me-access-validator
+bun install
+cre workflow simulate . --target=staging-settings
 ```
 
 ---
 
 ## Variáveis de ambiente
 
-Referência completa em `.env.example`. Nunca commite secrets reais.
-
 ```env
-# Cliente
+# Frontend
 NEXT_PUBLIC_API_URL=
 NEXT_PUBLIC_APP_URL=
 
-# Servidor
+# Backend
 DATABASE_URL=
 SECRET_KEY=
 ACCESS_TOKEN_EXPIRE_MINUTES=
@@ -116,9 +133,8 @@ PINATA_JWT=
 PINATA_GATEWAY_URL=
 
 # Chainlink / Web3
-CHAINLINK_CRE_ENV=
+CRE_ETH_PRIVATE_KEY=
 RPC_URL=
-PRIVATE_KEY=
 CHAIN_ID=
 CONTRACT_ADDRESS=
 ```
@@ -138,42 +154,25 @@ CONTRACT_ADDRESS=
 
 ---
 
+## Limitações conhecidas do MVP
+
+- Os serviços internos do backend (`services/`) são stubs — a lógica de negócio está diretamente nas rotas para simplificar a demo.
+- O `packages/design-system` é um scaffold ainda não integrado ao frontend.
+- Os testes do backend (`tests/`) são placeholders — a cobertura real está no fluxo de demo via Swagger.
+- O banco de dados usa SQLite em vez de PostgreSQL para facilitar o deploy de demo.
+- O frontend não tem autenticação real — as identidades são fixas para a demo (`auth_patient_rose_demo`, etc.).
+
+---
+
 ## Deploy
 
-- **Frontend** — Vercel
-- **Backend** — Render, Railway, Fly.io ou similar
-- **Banco** — Neon, Supabase ou outro PostgreSQL gerenciado
-- **Storage** — Pinata / IPFS
-- **Workflows** — Ambiente Chainlink CRE
-
----
-
-## Branches
-
-```
-feature/* → develop → main
-```
-
-| Branch                  | Uso                           |
-| ----------------------- | ----------------------------- |
-| `main`                  | Versão estável para submissão |
-| `develop`               | Integração                    |
-| `feature/frontend`      | Frontend                      |
-| `feature/backend-api`   | API                           |
-| `feature/chainlink-cre` | Workflows CRE                 |
-
----
-
-## Commits
-
-```
-feat: add patient dashboard layout
-feat: add medical records API route
-feat: add Chainlink CRE verification workflow
-fix: update IPFS integration config
-docs: update readme
-chore: configure monorepo scaffold
-```
+| Serviço       | Plataforma                                     |
+| ------------- | ---------------------------------------------- |
+| Frontend      | Vercel                                         |
+| Backend       | Render                                         |
+| Banco         | SQLite (demo) / Neon ou Supabase para produção |
+| Storage       | Pinata / IPFS                                  |
+| Workflows CRE | Ambiente Chainlink CRE                         |
 
 ---
 

@@ -10,6 +10,7 @@ import {
   Building2,
   CheckCircle2,
   KeyRound,
+  Loader2,
   Mail,
   Phone,
   Stethoscope,
@@ -87,6 +88,9 @@ export default function Page() {
   const [step, setStep] = React.useState<Step>("role");
   const [selectedRole, setSelectedRole] = React.useState<Role>("patient");
   const [isLoading, setIsLoading] = React.useState(false);
+  const [loadingMethod, setLoadingMethod] = React.useState<LoginMethod | null>(
+    null,
+  );
   const [error, setError] = React.useState<string | null>(null);
 
   const selected = roles.find((role) => role.id === selectedRole) ?? roles[0];
@@ -99,6 +103,7 @@ export default function Page() {
   async function handleLogin(method: LoginMethod) {
     try {
       setIsLoading(true);
+      setLoadingMethod(method);
       setError(null);
 
       const result = await loginWithDemoWallet(selectedRole, method);
@@ -111,14 +116,13 @@ export default function Page() {
           : "Não foi possível iniciar a sessão demo.";
 
       setError(message);
-    } finally {
       setIsLoading(false);
+      setLoadingMethod(null);
     }
   }
 
   return (
     <div className="min-h-screen bg-[var(--card)] text-[var(--navy)]">
-
       <main className="px-5 pb-12 pt-8 sm:px-8 lg:px-12">
         <section className="mx-auto flex min-h-[calc(100vh-140px)] w-full max-w-6xl items-center">
           <div className="grid w-full overflow-hidden border border-[var(--line)] bg-[var(--paper)] shadow-[0_24px_70px_rgba(11,27,63,0.08)] lg:grid-cols-[0.95fr_1.05fr]">
@@ -266,34 +270,53 @@ export default function Page() {
                       </div>
 
                       <div className="grid gap-3">
-                        {loginMethods.map((method) => (
-                          <button
-                            key={method.id}
-                            type="button"
-                            onClick={() => handleLogin(method.id)}
-                            disabled={isLoading}
-                            className="grid w-full grid-cols-[auto_1fr_auto] items-center gap-4 border border-[var(--line)] bg-white px-4 py-4 text-left transition-all duration-200 hover:border-[rgba(30,71,255,0.35)] hover:bg-[var(--card)] disabled:cursor-not-allowed disabled:opacity-60"
-                          >
-                            <span className="inline-flex h-10 w-10 items-center justify-center border border-[var(--line)] bg-[var(--card)] text-[var(--blue)]">
-                              {method.icon}
-                            </span>
+                        {loginMethods.map((method) => {
+                          const isMethodLoading =
+                            isLoading && loadingMethod === method.id;
 
-                            <span className="min-w-0">
-                              <span className="block text-[14px] font-semibold text-[var(--navy)]">
-                                {method.label}
+                          return (
+                            <button
+                              key={method.id}
+                              type="button"
+                              onClick={() => handleLogin(method.id)}
+                              disabled={isLoading}
+                              className={cn(
+                                "grid w-full grid-cols-[auto_1fr_auto] items-center gap-4 border px-4 py-4 text-left transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60",
+                                isMethodLoading
+                                  ? "border-[var(--blue)] bg-[rgba(30,71,255,0.06)]"
+                                  : "border-[var(--line)] bg-white hover:border-[rgba(30,71,255,0.35)] hover:bg-[var(--card)]",
+                              )}
+                            >
+                              <span className="inline-flex h-10 w-10 items-center justify-center border border-[var(--line)] bg-[var(--card)] text-[var(--blue)]">
+                                {method.icon}
                               </span>
 
-                              <span className="mt-0.5 block text-[12px] leading-relaxed text-[var(--ink-60)]">
-                                {method.description}
-                              </span>
-                            </span>
+                              <span className="min-w-0">
+                                <span className="block text-[14px] font-semibold text-[var(--navy)]">
+                                  {isMethodLoading
+                                    ? "Entrando..."
+                                    : method.label}
+                                </span>
 
-                            <ArrowRight
-                              className="h-4 w-4 text-[var(--ink-45)]"
-                              strokeWidth={1.8}
-                            />
-                          </button>
-                        ))}
+                                <span className="mt-0.5 block text-[12px] leading-relaxed text-[var(--ink-60)]">
+                                  {method.description}
+                                </span>
+                              </span>
+
+                              {isMethodLoading ? (
+                                <Loader2
+                                  className="h-4 w-4 animate-spin text-[var(--blue)]"
+                                  strokeWidth={1.8}
+                                />
+                              ) : (
+                                <ArrowRight
+                                  className="h-4 w-4 text-[var(--ink-45)]"
+                                  strokeWidth={1.8}
+                                />
+                              )}
+                            </button>
+                          );
+                        })}
                       </div>
 
                       {error ? (
@@ -302,13 +325,6 @@ export default function Page() {
                             {error}
                           </p>
                         </div>
-                      ) : null}
-
-
-                      {isLoading ? (
-                        <p className="mt-3 text-[12px] text-[var(--ink-60)]">
-                          Criando sessão segura da demonstração...
-                        </p>
                       ) : null}
                     </>
                   )}
