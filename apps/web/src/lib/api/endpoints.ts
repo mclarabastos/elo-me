@@ -23,8 +23,10 @@
 
   accessRequests: {
     root: "/access-requests",
+
     byId: (accessRequestId: string) =>
       `/access-requests/${accessRequestId}`,
+
     status: (accessRequestId: string) =>
       `/access-requests/${accessRequestId}/status`,
   },
@@ -32,8 +34,11 @@
   consents: {
     approve: "/consents/approve",
     revoke: "/consents/revoke",
+
     byId: (consentId: string) => `/consents/${consentId}`,
+
     verify: (consentId: string) => `/consents/${consentId}/verify`,
+
     authorizedMedicalData: (consentId: string) =>
       `/consents/${consentId}/authorized-medical-data`,
   },
@@ -49,5 +54,27 @@
       `/external/consents/${consentId}/verify`,
 
     validateAccess: "/external/access/validate",
+  },
+
+  frontend: {
+    patientDashboard: "/frontend/patient-dashboard",
+    shareFlow: "/frontend/share-flow",
+    auditTimeline: "/frontend/audit-timeline",
+    creStatus: "/frontend/cre-status",
+  },
+
+  auth: {
+    walletSession: "/auth/wallet-session",
+    demoWalletPayloads: "/auth/demo-wallet-payloads",
+    walletAbstractionConfig: "/auth/wallet-abstraction/config",
+    walletAbstractionUxCopy: "/auth/wallet-abstraction/ux-copy",
+  },
+
+  integration: {
+    status: "/integration/status",
+    frontendContract: "/integration/frontend-contract",
+    creContract: "/integration/cre-contract",
+    pitchScriptData: "/integration/pitch-script-data",
+    authContract: "/integration/auth-contract",
   },
 } as const;

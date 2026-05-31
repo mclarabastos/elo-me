@@ -7,18 +7,27 @@ import type {
   AccessRequestStatusUpdate,
   AccessValidateParams,
   AccessValidateResponse,
+  AuthRole,
   ClinicResponse,
   ConsentApproveRequest,
   ConsentResponse,
   ConsentRevokeRequest,
   ConsentVerifyResponse,
+  DemoWalletPayload,
+  DemoWalletPayloadsResponse,
   DoctorResponse,
   ExternalClinicVerifyResponse,
   ExternalConsentVerifyResponse,
   ExternalDoctorVerifyResponse,
+  FrontendAuditTimelineResponse,
+  FrontendCreStatusResponse,
+  FrontendPatientDashboardResponse,
+  FrontendShareFlowResponse,
   HealthResponse,
+  LoginMethod,
   MedicalDataResponse,
   UserResponse,
+  WalletSessionResponse,
 } from "@/types/api";
 
 export function getHealth() {
@@ -134,4 +143,85 @@ export function validateExternalAccess(params: AccessValidateParams) {
   return apiClient<AccessValidateResponse>(
     `${API_ENDPOINTS.external.validateAccess}?${searchParams.toString()}`
   );
+}
+
+export function getFrontendPatientDashboard() {
+  return apiClient<FrontendPatientDashboardResponse>(
+    API_ENDPOINTS.frontend.patientDashboard
+  );
+}
+
+export function getFrontendShareFlow() {
+  return apiClient<FrontendShareFlowResponse>(
+    API_ENDPOINTS.frontend.shareFlow
+  );
+}
+
+export function getFrontendAuditTimeline() {
+  return apiClient<FrontendAuditTimelineResponse>(
+    API_ENDPOINTS.frontend.auditTimeline
+  );
+}
+
+export function getFrontendCreStatus() {
+  return apiClient<FrontendCreStatusResponse>(
+    API_ENDPOINTS.frontend.creStatus
+  );
+}
+
+export function getDemoWalletPayloads() {
+  return apiClient<DemoWalletPayloadsResponse>(
+    API_ENDPOINTS.auth.demoWalletPayloads
+  );
+}
+
+export function createWalletSession(payload: DemoWalletPayload) {
+  return apiClient<WalletSessionResponse>(API_ENDPOINTS.auth.walletSession, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function getDashboardRouteByRole(role: AuthRole) {
+  const routes: Record<AuthRole, string> = {
+    patient: "/patient/dashboard",
+    clinic: "/clinic/dashboard",
+    doctor: "/doctor/dashboard",
+  };
+
+  return routes[role];
+}
+
+export async function loginWithDemoWallet(
+  role: AuthRole,
+  selectedMethod: LoginMethod
+) {
+  const data = await getDemoWalletPayloads();
+
+  // Na demo, o método escolhido é visual/UX.
+  // O payload enviado ao backend é definido pelo perfil selecionado.
+  const item = data.items.find((entry) => entry.payload.role === role);
+
+  if (!item) {
+    throw new Error(
+      `Não encontramos um payload demo para o perfil selecionado.`
+    );
+  }
+
+  const session = await createWalletSession(item.payload);
+
+  if (typeof window !== "undefined") {
+    localStorage.setItem("elo.me.auth_session", JSON.stringify(session));
+    localStorage.setItem("elo.me.role", String(session.role));
+    localStorage.setItem("elo.me.identity_id", session.id);
+    localStorage.setItem("elo.me.wallet_address", session.wallet_address);
+    localStorage.setItem("elo.me.display_name", session.display_name);
+    localStorage.setItem("elo.me.demo_login_method", selectedMethod);
+    localStorage.setItem("elo.me.backend_login_method", item.loginMethod);
+  }
+
+  return {
+    session,
+    route: getDashboardRouteByRole(role),
+  };
 }

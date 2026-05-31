@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, type Variants } from "framer-motion";
@@ -12,7 +13,7 @@ import {
   HelpCircle,
   Home,
   LogOut,
-  Settings,
+  ScrollText,
   ShieldCheck,
   Stethoscope,
   User,
@@ -42,31 +43,13 @@ type DashboardSidebarProps = {
   className?: string;
 };
 
-const PROFILE_STORAGE_KEY = "elo_patient_profile_overrides";
-
 type ProfileStorageData = {
   fullName?: string;
   email?: string;
   avatarDataUrl?: string;
 };
 
-function getStoredProfile() {
-  if (typeof window === "undefined") {
-    return undefined;
-  }
-
-  try {
-    const raw = window.localStorage.getItem(PROFILE_STORAGE_KEY);
-
-    if (!raw) {
-      return undefined;
-    }
-
-    return JSON.parse(raw) as ProfileStorageData;
-  } catch {
-    return undefined;
-  }
-}
+const PROFILE_STORAGE_KEY = "elo_patient_profile_overrides";
 
 const sidebarVariants: Variants = {
   hidden: { opacity: 0 },
@@ -129,6 +112,11 @@ const NAV_ITEMS: Record<DashboardRole, NavItem[]> = {
       icon: <ShieldCheck className="h-4 w-4" strokeWidth={1.6} />,
     },
     {
+      href: "/patient/audit",
+      label: "Auditoria",
+      icon: <ScrollText className="h-4 w-4" strokeWidth={1.6} />,
+    },
+    {
       href: "/patient/profile",
       label: "Perfil",
       icon: <User className="h-4 w-4" strokeWidth={1.6} />,
@@ -161,6 +149,11 @@ const NAV_ITEMS: Record<DashboardRole, NavItem[]> = {
       href: "/doctor/records",
       label: "Registros autorizados",
       icon: <ClipboardList className="h-4 w-4" strokeWidth={1.6} />,
+    },
+    {
+      href: "/doctor/logs",
+      label: "Histórico",
+      icon: <ScrollText className="h-4 w-4" strokeWidth={1.6} />,
     },
     {
       href: "/doctor/profile",
@@ -202,9 +195,9 @@ const NAV_ITEMS: Record<DashboardRole, NavItem[]> = {
       icon: <ClipboardList className="h-4 w-4" strokeWidth={1.6} />,
     },
     {
-      href: "/clinic/settings",
-      label: "Configurações",
-      icon: <Settings className="h-4 w-4" strokeWidth={1.6} />,
+      href: "/clinic/logs",
+      label: "Logs / Auditoria",
+      icon: <ScrollText className="h-4 w-4" strokeWidth={1.6} />,
     },
     {
       href: "#help",
@@ -214,6 +207,83 @@ const NAV_ITEMS: Record<DashboardRole, NavItem[]> = {
     },
   ],
 };
+
+function getStoredProfile() {
+  if (typeof window === "undefined") {
+    return undefined;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(PROFILE_STORAGE_KEY);
+
+    if (!raw) {
+      return undefined;
+    }
+
+    return JSON.parse(raw) as ProfileStorageData;
+  } catch {
+    return undefined;
+  }
+}
+
+function getInitials(name: string, fallback: string) {
+  const initials = name
+    .split(" ")
+    .filter(Boolean)
+    .map((part) => part[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+
+  return initials || fallback;
+}
+
+function isActivePath(pathname: string, href: string) {
+  if (href.startsWith("#")) {
+    return false;
+  }
+
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+function getProfileHref(role: DashboardRole) {
+  if (role === "patient") {
+    return "/patient/profile";
+  }
+
+  if (role === "doctor") {
+    return "/doctor/profile";
+  }
+
+  return "/clinic/dashboard";
+}
+
+function SidebarAvatar({
+  name,
+  initials,
+  avatarDataUrl,
+}: {
+  name: string;
+  initials: string;
+  avatarDataUrl?: string;
+}) {
+  if (avatarDataUrl) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={avatarDataUrl}
+        alt={name}
+        className="h-full w-full rounded-full object-cover"
+      />
+    );
+  }
+
+  return (
+    <div className="flex h-full w-full items-center justify-center rounded-full bg-[var(--sky-2)] font-mono text-[11px] font-semibold text-[var(--blue)]">
+      {initials}
+    </div>
+  );
+}
 
 export const DashboardSidebar = React.forwardRef<
   HTMLDivElement,
@@ -258,138 +328,185 @@ export const DashboardSidebar = React.forwardRef<
   const avatarDataUrl =
     role === "patient" ? storedProfile?.avatarDataUrl : undefined;
 
+  const initials = getInitials(displayName, user.initials);
+  const profileHref = getProfileHref(role);
+
+  const mobileNavItems = navItems
+    .filter((item) => !item.isSeparator && !item.href.startsWith("#"))
+    .slice(0, 5);
+
   return (
-    <motion.aside
-      ref={ref}
-      className={cn(
-        "sticky top-0 flex h-screen w-[248px] flex-col border-r border-[var(--line)] bg-[rgba(255,255,255,0.64)] p-4 text-[var(--navy)]",
-        className
-      )}
-      initial="hidden"
-      animate="visible"
-      variants={sidebarVariants}
-      aria-label="Navegação lateral do dashboard"
-    >
-      <motion.div variants={itemVariants} className="px-2 pt-1">
-        <Link href="/" className="inline-flex items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--blue)] text-[13px] font-black text-white">
-            ✦
-          </span>
+    <>
+      <motion.aside
+        ref={ref}
+        className={cn(
+          "hidden h-screen w-[240px] shrink-0 flex-col border-r border-[var(--line)] bg-[rgba(255,255,255,0.78)] px-4 py-6 backdrop-blur-xl md:flex",
+          className,
+        )}
+        initial="hidden"
+        animate="visible"
+        variants={sidebarVariants}
+      >
+        <motion.div variants={itemVariants}>
+          <Link
+            href="/"
+            aria-label="Ir para a página inicial da ELO.me"
+            className="inline-flex items-center"
+          >
+            <Image
+              src="/images/elo.me_teste.png"
+              alt="ELO.me"
+              width={124}
+              height={40}
+              priority
+              className="h-6 w-auto object-contain"
+            />
+          </Link>
+        </motion.div>
 
-          <span className="text-[17px] font-black tracking-[-0.04em] text-[var(--blue)]">
-            ELO<span className="text-[var(--navy)]">.ME</span>
-          </span>
-        </Link>
-      </motion.div>
-
-      <motion.div variants={itemVariants} className="mt-8">
-        <Link
-          href={
-            role === "patient"
-              ? "/patient/profile"
-              : role === "doctor"
-                ? "/doctor/profile"
-                : "/clinic/settings"
-          }
-          className="group flex items-center gap-3 rounded-[18px] px-2 py-2 transition hover:bg-[rgba(255,255,255,0.72)]"
-        >
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--sky-2)]">
-            {avatarDataUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={avatarDataUrl}
-                alt={displayName}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <span className="font-mono text-[12px] font-semibold text-[var(--blue)]">
-                {user.initials}
-              </span>
+        <motion.div variants={itemVariants}>
+          <Link
+            href={profileHref}
+            className={cn(
+              "-mx-2 mt-10 flex items-center gap-3 rounded-[14px] p-2 transition hover:bg-[var(--card)]",
+              isActivePath(pathname, profileHref) && "bg-[var(--card)]",
             )}
-          </div>
+          >
+            <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full">
+              <SidebarAvatar
+                name={displayName}
+                initials={initials}
+                avatarDataUrl={avatarDataUrl}
+              />
+            </div>
 
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-[12px] font-bold uppercase tracking-[0.02em] text-[var(--navy)]">
-              {displayName}
-            </p>
-            <p className="mt-0.5 truncate font-mono text-[9px] uppercase tracking-[0.12em] text-[var(--ink-45)]">
-              {role === "patient" ? "Paciente" : displayEmail}
-            </p>
-          </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[13px] font-bold uppercase tracking-[0.02em] text-[var(--navy)]">
+                {displayName}
+              </p>
 
-          <ChevronRight
-            className="h-4 w-4 shrink-0 text-[var(--ink-45)] transition group-hover:translate-x-0.5 group-hover:text-[var(--navy)]"
-            strokeWidth={1.6}
-          />
-        </Link>
-      </motion.div>
+              <p className="mt-1 truncate font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--ink-45)]">
+                {displayEmail}
+              </p>
+            </div>
 
-      <motion.div
-        variants={itemVariants}
-        className="my-5 border-t border-[var(--line)]"
-      />
+            <ChevronRight
+              className="h-4 w-4 shrink-0 text-[var(--ink-45)]"
+              strokeWidth={1.6}
+            />
+          </Link>
+        </motion.div>
 
-      <nav className="flex-1 space-y-1" role="navigation">
-        {navItems.map((item, index) => {
-          const active =
-            pathname === item.href || pathname.startsWith(`${item.href}/`);
+        <motion.div
+          variants={itemVariants}
+          className="my-7 border-t border-[var(--line)]"
+        />
 
-          return (
-            <React.Fragment key={`${item.href}-${index}`}>
-              {item.isSeparator ? (
-                <motion.div variants={itemVariants} className="h-4" />
-              ) : null}
+        <nav className="flex flex-1 flex-col gap-1">
+          {navItems.map((item) => {
+            const active = isActivePath(pathname, item.href);
 
-              <motion.div variants={itemVariants}>
-                <Link
-                  href={item.href}
+            return (
+              <React.Fragment key={`${role}-${item.href}-${item.label}`}>
+                {item.isSeparator ? <div className="h-6" /> : null}
+
+                <motion.div variants={itemVariants}>
+                  {item.href.startsWith("#") ? (
+                    <a
+                      href={item.href}
+                      className="group flex items-center gap-3 rounded-full px-4 py-3 text-[14px] font-semibold text-[var(--ink-60)] transition hover:bg-[var(--card)] hover:text-[var(--navy)]"
+                    >
+                      <span className="text-[var(--ink-45)] transition group-hover:text-[var(--blue)]">
+                        {item.icon}
+                      </span>
+
+                      <span className="truncate">{item.label}</span>
+                    </a>
+                  ) : (
+                    <Link
+                      href={item.href}
+                      className={cn(
+                        "group flex items-center gap-3 rounded-full px-4 py-3 text-[14px] font-semibold transition",
+                        active
+                          ? "bg-[var(--navy)] text-white"
+                          : "text-[var(--ink-60)] hover:bg-[var(--card)] hover:text-[var(--navy)]",
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "transition",
+                          active
+                            ? "text-white"
+                            : "text-[var(--ink-45)] group-hover:text-[var(--blue)]",
+                        )}
+                      >
+                        {item.icon}
+                      </span>
+
+                      <span className="truncate">{item.label}</span>
+
+                      {active ? (
+                        <ChevronRight
+                          className="ml-auto h-4 w-4 text-white/70"
+                          strokeWidth={1.6}
+                        />
+                      ) : null}
+                    </Link>
+                  )}
+                </motion.div>
+              </React.Fragment>
+            );
+          })}
+        </nav>
+
+        <motion.div variants={itemVariants} className="pt-6">
+          <Link
+            href="/auth/login"
+            className="group flex items-center gap-3 rounded-full px-4 py-3 text-[14px] font-semibold text-[var(--ink-60)] transition hover:bg-[var(--card)] hover:text-[var(--navy)]"
+          >
+            <LogOut
+              className="h-4 w-4 text-[var(--ink-45)] transition group-hover:text-[var(--blue)]"
+              strokeWidth={1.6}
+            />
+            Sair
+          </Link>
+        </motion.div>
+      </motion.aside>
+
+      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--line)] bg-[rgba(255,255,255,0.92)] px-2 py-2 backdrop-blur-xl md:hidden">
+        <div className="mx-auto grid max-w-[520px] grid-cols-5 gap-1">
+          {mobileNavItems.map((item) => {
+            const active = isActivePath(pathname, item.href);
+
+            return (
+              <Link
+                key={`mobile-${role}-${item.href}`}
+                href={item.href}
+                className={cn(
+                  "flex flex-col items-center justify-center gap-1 rounded-[10px] px-2 py-2 text-center text-[10px] font-semibold transition",
+                  active
+                    ? "bg-[var(--navy)] text-white"
+                    : "text-[var(--ink-60)] hover:bg-[var(--card)]",
+                )}
+              >
+                <span
                   className={cn(
-                    "group flex items-center rounded-full px-3 py-2.5 text-[13px] font-semibold transition-colors",
-                    active
-                      ? "bg-[var(--navy)] text-white"
-                      : "text-[var(--ink-60)] hover:bg-[var(--sky-2)] hover:text-[var(--navy)]"
+                    active ? "text-white" : "text-[var(--ink-45)]",
                   )}
                 >
-                  <span
-                    className={cn(
-                      "mr-3 flex h-5 w-5 items-center justify-center",
-                      active ? "text-[var(--sky)]" : "text-[var(--ink-45)]"
-                    )}
-                  >
-                    {item.icon}
-                  </span>
+                  {item.icon}
+                </span>
 
-                  <span className="truncate">{item.label}</span>
-
-                  <ChevronRight
-                    className={cn(
-                      "ml-auto h-4 w-4 transition-opacity",
-                      active
-                        ? "opacity-100 text-white/50"
-                        : "opacity-0 group-hover:opacity-100"
-                    )}
-                    strokeWidth={1.6}
-                  />
-                </Link>
-              </motion.div>
-            </React.Fragment>
-          );
-        })}
+                <span className="max-w-full truncate">{item.label}</span>
+              </Link>
+            );
+          })}
+        </div>
       </nav>
-
-      <motion.div variants={itemVariants} className="mt-4">
-        <Link
-          href="/"
-          className="group flex w-full items-center rounded-full px-3 py-2.5 text-[13px] font-semibold text-[var(--ink-60)] transition-colors hover:bg-[rgba(213,64,64,0.08)] hover:text-[var(--danger)]"
-        >
-          <span className="mr-3 flex h-5 w-5 items-center justify-center">
-            <LogOut className="h-4 w-4" strokeWidth={1.6} />
-          </span>
-          <span>Sair</span>
-        </Link>
-      </motion.div>
-    </motion.aside>
+    </>
   );
 });
 
 DashboardSidebar.displayName = "DashboardSidebar";
+
+export default DashboardSidebar;

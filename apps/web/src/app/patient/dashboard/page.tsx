@@ -1,14 +1,21 @@
 ﻿import Link from "next/link";
-import { Activity, ArrowRight } from "lucide-react";
+import {
+  Activity,
+  ArrowRight,
+  CheckCircle2,
+  Clock3,
+  FileText,
+  ShieldCheck,
+} from "lucide-react";
 
 import {
   DashboardMetricCard,
   DashboardMetricGrid,
 } from "@/components/dashboard/dashboard-card";
 import {
-  getDemoUser,
-  getPatientAccessRequests,
-  getPatientMedicalData,
+  getFrontendAuditTimeline,
+  getFrontendCreStatus,
+  getFrontendPatientDashboard,
 } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
@@ -17,16 +24,14 @@ function formatPatientName(name: string) {
   return name.split(" ")[0] ?? name;
 }
 
-function getPendingCount(
-  accessRequests: Awaited<ReturnType<typeof getPatientAccessRequests>>
-) {
-  return accessRequests.filter((request) => request.status === "pending").length;
-}
+function formatSensitivity(sensitivity: string) {
+  const labels: Record<string, string> = {
+    low: "Baixa",
+    medium: "Média",
+    high: "Alta",
+  };
 
-function getActiveLikeCount(
-  accessRequests: Awaited<ReturnType<typeof getPatientAccessRequests>>
-) {
-  return accessRequests.filter((request) => request.status === "approved").length;
+  return labels[sensitivity] ?? sensitivity;
 }
 
 function formatCategory(category: string) {
@@ -42,52 +47,89 @@ function formatCategory(category: string) {
   return labels[category] ?? category;
 }
 
-function formatSensitivity(sensitivity: string) {
+function formatScope(scope: string) {
   const labels: Record<string, string> = {
-    low: "Baixa",
-    medium: "Média",
-    high: "Alta",
+    identification: "Identificação",
+    allergies: "Alergias",
+    medications: "Medicamentos",
+    recent_exams: "Exames recentes",
+    special_needs: "Necessidades especiais",
+    emergency_contact: "Contato de emergência",
   };
 
-  return labels[sensitivity] ?? sensitivity;
+  return labels[scope] ?? scope;
+}
+
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value));
 }
 
 function StatusPip({ status }: { status: string }) {
   const normalizedStatus = status.toLowerCase();
 
   const colorClass =
-    normalizedStatus === "approved"
+    normalizedStatus === "authorized" ||
+    normalizedStatus === "approved" ||
+    normalizedStatus === "completed" ||
+    normalizedStatus === "validated"
+      ? "bg-[var(--success)]"
+      : normalizedStatus === "requested" || normalizedStatus === "pending"
+        ? "bg-[var(--warning)]"
+        : "bg-[var(--danger)]";
+
+  const labelMap: Record<string, string> = {
+    authorized: "Autorizado",
+    approved: "Aprovado",
+    completed: "Concluído",
+    validated: "Validado",
+    requested: "Solicitado",
+    pending: "Pendente",
+    denied: "Negado",
+    revoked: "Revogado",
+  };
+
+  return (
+    <span className="inline-flex items-center gap-2 font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--ink-60)]">
+      <span className={`h-2 w-2 rounded-full ${colorClass}`} />
+      {labelMap[normalizedStatus] ?? status}
+    </span>
+  );
+}
+
+function CreStatusPip({ status }: { status: string }) {
+  const normalizedStatus = status.toLowerCase();
+
+  const colorClass =
+    normalizedStatus === "online" || normalizedStatus === "ready"
       ? "bg-[var(--success)]"
       : normalizedStatus === "pending"
         ? "bg-[var(--warning)]"
         : "bg-[var(--danger)]";
 
-  const label =
-    normalizedStatus === "approved"
-      ? "Aprovado"
-      : normalizedStatus === "pending"
-        ? "Pendente"
-        : status;
-
   return (
     <span className="inline-flex items-center gap-2 font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--ink-60)]">
       <span className={`h-2 w-2 rounded-full ${colorClass}`} />
-      {label}
+      {status}
     </span>
   );
 }
 
 export default async function PatientDashboardPage() {
-  const user = await getDemoUser();
-
-  const [medicalData, accessRequests] = await Promise.all([
-    getPatientMedicalData(user.id),
-    getPatientAccessRequests(user.id),
+  const [dashboard, auditTimeline, creStatus] = await Promise.all([
+    getFrontendPatientDashboard(),
+    getFrontendAuditTimeline(),
+    getFrontendCreStatus(),
   ]);
 
-  const pendingRequests = getPendingCount(accessRequests);
-  const activeAccesses = getActiveLikeCount(accessRequests);
-  const recentRequests = accessRequests.slice(0, 4);
+  const recentAuditItems = auditTimeline.items.slice(0, 4);
+  const recentCreEvent = auditTimeline.items.find(
+    (item) => item.type === "cre_validation"
+  );
 
   return (
     <div className="space-y-[18px]">
@@ -95,15 +137,15 @@ export default async function PatientDashboardPage() {
         <h1 className="mt-4 text-balance text-[30px] font-bold leading-[1.06] tracking-[-0.025em] text-[var(--navy)] sm:text-[36px] md:text-[42px]">
           Olá,{" "}
           <span className="text-[var(--blue)]">
-            {formatPatientName(user.name)}.
+            {formatPatientName(dashboard.patient.name)}.
           </span>
           <br />
           Aqui está o seu resumo.
         </h1>
 
-        <p className="mt-3 max-w-[620px] text-[15px] leading-[1.55] text-[var(--ink-60)]">
+        <p className="mt-3 max-w-[660px] text-[15px] leading-[1.55] text-[var(--ink-60)]">
           Você está no controle dos seus dados médicos. Acompanhe documentos,
-          consentimentos e solicitações de acesso em um só lugar.
+          consentimentos, validações e eventos de auditoria em um só lugar.
         </p>
       </section>
 
@@ -111,7 +153,7 @@ export default async function PatientDashboardPage() {
         <Link href="/patient/records" className="block">
           <DashboardMetricCard
             label="Documentos"
-            value={medicalData.length}
+            value={dashboard.summary.medicalDataCount}
             helper="dados médicos disponíveis"
           />
         </Link>
@@ -119,16 +161,16 @@ export default async function PatientDashboardPage() {
         <Link href="/patient/permissions" className="block">
           <DashboardMetricCard
             label="Consentimentos ativos"
-            value={activeAccesses}
+            value={dashboard.summary.activeConsentsCount}
             helper="permissões aprovadas"
           />
         </Link>
 
-        <Link href="/patient/permissions" className="block">
+        <Link href="/patient/audit" className="block">
           <DashboardMetricCard
-            label="Pedidos pendentes"
-            value={pendingRequests}
-            helper="aguardando resposta"
+            label="Eventos auditados"
+            value={auditTimeline.items.length}
+            helper="registros de atividade"
           />
         </Link>
       </DashboardMetricGrid>
@@ -138,41 +180,44 @@ export default async function PatientDashboardPage() {
           <div className="flex items-start justify-between gap-4 border-b border-[var(--line)] p-5">
             <div>
               <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--ink-45)]">
-                Atividade recente
+                Auditoria
               </p>
 
               <h2 className="mt-2 text-[22px] font-bold tracking-[-0.02em] text-[var(--navy)]">
-                Solicitações de acesso
+                Atividade recente
               </h2>
             </div>
 
             <Link
-              href="/patient/permissions"
+              href="/patient/audit"
               className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--blue)] transition hover:opacity-80"
             >
-              Ver todas
+              Ver trilha
             </Link>
           </div>
 
-          {recentRequests.length > 0 ? (
+          {recentAuditItems.length > 0 ? (
             <div>
-              {recentRequests.map((request) => (
+              {recentAuditItems.map((item) => (
                 <div
-                  key={request.id}
+                  key={item.id}
                   className="grid gap-3 border-b border-[var(--line-2)] px-5 py-4 last:border-b-0 md:grid-cols-[1fr_auto]"
                 >
                   <div>
                     <p className="text-[14px] font-semibold text-[var(--navy)]">
-                      {request.purpose}
+                      {item.title}
                     </p>
 
-                    <p className="mt-1 font-mono text-[11px] text-[var(--ink-45)]">
-                      {request.requester_type} · {request.duration_hours}h ·{" "}
-                      {request.requested_scopes.join(", ")}
+                    <p className="mt-1 text-[13px] leading-relaxed text-[var(--ink-60)]">
+                      {item.description}
+                    </p>
+
+                    <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--ink-45)]">
+                      {item.actor} · {formatDate(item.createdAt)}
                     </p>
                   </div>
 
-                  <StatusPip status={request.status} />
+                  <StatusPip status={item.status} />
                 </div>
               ))}
             </div>
@@ -180,12 +225,12 @@ export default async function PatientDashboardPage() {
             <div className="p-5">
               <div className="border border-dashed border-[var(--line)] bg-[var(--card)] px-5 py-8">
                 <p className="text-[14px] font-semibold text-[var(--navy)]">
-                  Nenhuma solicitação ainda.
+                  Nenhum evento registrado ainda.
                 </p>
 
                 <p className="mt-1 text-[13px] leading-relaxed text-[var(--ink-60)]">
-                  Pedidos de acesso enviados por médicos ou clínicas aparecerão
-                  aqui.
+                  Quando houver solicitações, consentimentos ou validações CRE,
+                  os eventos aparecerão nesta trilha.
                 </p>
               </div>
             </div>
@@ -203,9 +248,9 @@ export default async function PatientDashboardPage() {
             </h2>
           </div>
 
-          {medicalData.length > 0 ? (
+          {dashboard.medicalDataCategories.length > 0 ? (
             <div>
-              {medicalData.slice(0, 5).map((item) => (
+              {dashboard.medicalDataCategories.slice(0, 5).map((item) => (
                 <div
                   key={item.id}
                   className="border-b border-[var(--line-2)] bg-[var(--paper)] px-5 py-4 last:border-b-0 transition hover:bg-[var(--card)]"
@@ -239,7 +284,7 @@ export default async function PatientDashboardPage() {
 
                 <p className="mt-1 text-[13px] leading-relaxed text-[var(--ink-60)]">
                   Seus registros aparecerão aqui assim que forem conectados à sua
-                  identidade ELO.
+                  identidade Elo.me.
                 </p>
               </div>
             </div>
@@ -253,6 +298,115 @@ export default async function PatientDashboardPage() {
               Ver prontuário
               <ArrowRight className="h-4 w-4" strokeWidth={1.6} />
             </Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="grid gap-[18px] xl:grid-cols-[0.9fr_1.1fr]">
+        <div className="border border-[var(--line)] bg-[var(--paper)]">
+          <div className="border-b border-[var(--line)] p-5">
+            <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--ink-45)]">
+              Compartilhamento
+            </p>
+
+            <h2 className="mt-2 text-[22px] font-bold tracking-[-0.02em] text-[var(--navy)]">
+              Ações rápidas
+            </h2>
+          </div>
+
+          <div className="grid gap-0">
+            {dashboard.quickActions.map((action) => {
+              const href =
+                action.action === "view_audit_logs"
+                  ? "/patient/audit"
+                  : "/patient/permissions";
+
+              return (
+                <Link
+                  key={action.action}
+                  href={href}
+                  className="flex items-center justify-between gap-4 border-b border-[var(--line-2)] px-5 py-4 text-[14px] font-semibold text-[var(--navy)] transition last:border-b-0 hover:bg-[var(--card)]"
+                >
+                  <span>{action.label}</span>
+                  <ArrowRight
+                    className="h-4 w-4 text-[var(--blue)]"
+                    strokeWidth={1.6}
+                  />
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="border border-[var(--line)] bg-[var(--paper)]">
+          <div className="flex items-start justify-between gap-4 border-b border-[var(--line)] p-5">
+            <div>
+              <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--ink-45)]">
+                Chainlink CRE
+              </p>
+
+              <h2 className="mt-2 text-[22px] font-bold tracking-[-0.02em] text-[var(--navy)]">
+                Status da validação
+              </h2>
+            </div>
+
+            <ShieldCheck
+              className="h-5 w-5 shrink-0 text-[var(--blue)]"
+              strokeWidth={1.6}
+            />
+          </div>
+
+          <div>
+            {creStatus.items.map((item) => (
+              <div
+                key={item.name}
+                className="grid gap-3 border-b border-[var(--line-2)] px-5 py-4 last:border-b-0 md:grid-cols-[1fr_auto]"
+              >
+                <div>
+                  <p className="text-[14px] font-semibold text-[var(--navy)]">
+                    {item.name}
+                  </p>
+
+                  <p className="mt-1 text-[13px] leading-relaxed text-[var(--ink-60)]">
+                    {item.description}
+                  </p>
+                </div>
+
+                <CreStatusPip status={item.status} />
+              </div>
+            ))}
+          </div>
+
+          <div className="border-t border-[var(--line)] bg-[var(--card)] px-5 py-4">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--ink-45)]">
+                  Endpoint CRE
+                </p>
+
+                <p className="mt-1 break-all font-mono text-[11px] text-[var(--navy)]">
+                  {creStatus.mainCreEndpoint}
+                </p>
+              </div>
+
+              {recentCreEvent ? (
+                <span className="inline-flex items-center gap-2 rounded-[6px] border border-[var(--line)] bg-[var(--paper)] px-3 py-2 text-[12px] font-semibold text-[var(--navy)]">
+                  <CheckCircle2
+                    className="h-4 w-4 text-[var(--success)]"
+                    strokeWidth={1.8}
+                  />
+                  Última validação registrada
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-2 rounded-[6px] border border-[var(--line)] bg-[var(--paper)] px-3 py-2 text-[12px] font-semibold text-[var(--navy)]">
+                  <Clock3
+                    className="h-4 w-4 text-[var(--warning)]"
+                    strokeWidth={1.8}
+                  />
+                  Aguardando validação
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </section>

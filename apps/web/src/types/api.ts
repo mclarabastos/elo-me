@@ -14,13 +14,15 @@ export type ConsentStatus = "active" | "revoked" | "expired" | string;
 export type AccessRequestStatus =
   | "pending"
   | "approved"
+  | "denied"
+  | "cancelled"
   | "rejected"
   | "revoked"
   | string;
 
 export type RequesterType = "clinic" | "doctor" | string;
 
-export type AccessDecision = "AUTHORIZED" | "DENIED" | string;
+export type AccessDecision = "AUTHORIZED" | "DENIED" | "INFO" | string;
 
 export type UserResponse = {
   id: string;
@@ -166,4 +168,133 @@ export type AccessValidateResponse = {
 export type HealthResponse = {
   status: string;
   service: string;
+};
+
+export type FrontendAuditTimelineItem = {
+  id: string;
+  title: string;
+  description: string;
+  status: string;
+  actor: string;
+  timestamp: string;
+  type:
+    | "identity"
+    | "access_request"
+    | "consent"
+    | "cre_validation"
+    | "audit_log"
+    | string;
+  decision: AccessDecision;
+  statusLabel: string;
+  clinicName: string;
+  doctorName: string;
+  requestedScopes: MedicalScope[];
+  createdAt: string;
+};
+
+export type FrontendAuditTimelineResponse = {
+  patientId: string;
+  items: FrontendAuditTimelineItem[];
+};
+
+export type FrontendPatientDashboardResponse = {
+  patient: {
+    id: string;
+    name: string;
+    role: UserRole;
+    identityVerified: boolean;
+  };
+  summary: {
+    medicalDataCount: number;
+    activeConsentsCount: number;
+    recentAccessCount: number;
+  };
+  medicalDataCategories: {
+    id: string;
+    category: MedicalScope;
+    label: string;
+    sensitivity: string;
+    available: boolean;
+  }[];
+  recentActivity: FrontendAuditTimelineItem[];
+  quickActions: {
+    label: string;
+    action: string;
+  }[];
+};
+
+export type FrontendShareFlowResponse = {
+  patientId: string;
+  availableClinic: {
+    id: string;
+    name: string;
+    authorized: boolean;
+    licenseStatus: string;
+  };
+  availableDoctor: {
+    id: string;
+    name: string;
+    authorized: boolean;
+    crmStatus: string;
+  };
+  shareableScopes: {
+    category: MedicalScope;
+    label: string;
+    sensitivity: string;
+    recommended: boolean;
+  }[];
+  defaultPurpose: string;
+  defaultDurationHours: number;
+};
+
+export type FrontendCreStatusItem = {
+  name: string;
+  status: string;
+  description: string;
+};
+
+export type FrontendCreStatusResponse = {
+  system: string;
+  items: FrontendCreStatusItem[];
+  mainCreEndpoint: string;
+};
+
+export type AuthRole = "patient" | "clinic" | "doctor";
+
+export type LoginMethod = "google" | "email" | "phone" | "passkey";
+
+export type DemoWalletPayload = {
+  provider: string;
+  provider_user_id: string;
+  email: string | null;
+  phone: string | null;
+  wallet_address: string;
+  display_name: string;
+  role: AuthRole | "admin";
+};
+
+export type DemoWalletItem = {
+  label: string;
+  loginMethod: LoginMethod;
+  payload: DemoWalletPayload;
+};
+
+export type DemoWalletPayloadsResponse = {
+  items: DemoWalletItem[];
+  note: string;
+};
+
+export type WalletSessionResponse = {
+  id: string;
+  provider: string;
+  provider_user_id: string;
+  email: string | null;
+  phone: string | null;
+  wallet_address: string;
+  display_name: string;
+  role: AuthRole | "admin";
+  available_actions: string[];
+  created_at: string;
+  updated_at: string;
+  message: string;
 };

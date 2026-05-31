@@ -1,85 +1,208 @@
-import { Sparkles } from "lucide-react";
+import {
+  Bell,
+  CheckCircle2,
+  Database,
+  FileCheck2,
+  LockKeyhole,
+  RefreshCw,
+  ShieldCheck,
+  UserRound,
+} from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-const rows = [
-  { t: "14:32", who: "Dr. M. Andrade", role: "Hospital São Lucas · Cardiologia", scope: "Eletrocardiograma · 48h", hash: "0x9af3…b21c", state: "ok", stateLabel: "Autorizado", action: "Detalhes →" },
-  { t: "11:18", who: "Laboratório Vita", role: "Setor de análises clínicas", scope: "Hemograma completo · 24h", hash: "0x7c12…d40a", state: "pending", stateLabel: "Pendente", action: "Revisar →" },
-  { t: "09:04", who: "Operadora Conexa Saúde", role: "Pré-autorização", scope: "Histórico de internações", hash: "0x2bd9…f0e1", state: "denied", stateLabel: "Negado", action: "Motivo →" },
-  { t: "08:47", who: "Dra. R. Salem", role: "Clínica integrada", scope: "Consulta única · prontuário", hash: "0xa1cc…9b3f", state: "ok", stateLabel: "Autorizado", action: "Detalhes →" },
+const protectionCards = [
+  {
+    title: "Fica protegido",
+    description:
+      "Dados médicos, documentos, perfis, notificações e solicitações ficam fora de registros públicos.",
+    icon: LockKeyhole,
+  },
+  {
+    title: "Fica registrado",
+    description:
+      "Consentimentos, revogações e eventos de acesso geram uma trilha verificável para auditoria.",
+    icon: FileCheck2,
+  },
+  {
+    title: "Fica conferido",
+    description:
+      "Antes de liberar uma consulta, o sistema confere instituição, profissional, permissão e dados autorizados.",
+    icon: ShieldCheck,
+  },
+];
+
+const privacyRows = [
+  {
+    item: "Dados médicos",
+    protected: "Prontuários, exames e documentos não são publicados.",
+    registered: "Apenas uma prova do acesso autorizado fica registrada.",
+    state: "protected",
+    stateLabel: "Protegido",
+  },
+  {
+    item: "Identidade do paciente",
+    protected: "Login, perfil e dados pessoais ficam na aplicação.",
+    registered: "A permissão concedida pode ser rastreada.",
+    state: "protected",
+    stateLabel: "Protegido",
+  },
+  {
+    item: "Solicitações de acesso",
+    protected: "O pedido aparece para o paciente aprovar, recusar ou limitar.",
+    registered: "A decisão fica associada ao escopo, prazo e finalidade.",
+    state: "verified",
+    stateLabel: "Verificável",
+  },
+  {
+    item: "Histórico de auditoria",
+    protected: "O conteúdo médico continua privado.",
+    registered: "A plataforma mostra quem solicitou, quando e quais dados foram liberados.",
+    state: "ok",
+    stateLabel: "Auditável",
+  },
 ] as const;
+
+const flowItems = [
+  {
+    label: "Paciente",
+    text: "decide quais dados compartilhar",
+    icon: UserRound,
+  },
+  {
+    label: "Notificação",
+    text: "avisa sobre novas solicitações",
+    icon: Bell,
+  },
+  {
+    label: "Permissão",
+    text: "define escopo, prazo e finalidade",
+    icon: CheckCircle2,
+  },
+  {
+    label: "Histórico",
+    text: "mantém a trilha de acesso organizada",
+    icon: RefreshCw,
+  },
+];
 
 const pip = {
   ok: "bg-[#1FAE6A]",
-  pending: "bg-[#F0A02B]",
-  denied: "bg-[#D54040]",
+  verified: "bg-[#1E47FF]",
+  protected: "bg-[#7EA2FF]",
 };
 
 export function Web3Ledger() {
   return (
     <>
-      <section className="border-t border-[rgba(11,27,63,0.10)] px-9 py-[120px] pb-[60px] text-center" id="web3">
-        <div className="font-[family-name:var(--font-mono)] text-[11px] uppercase tracking-[0.18em] text-[rgba(11,27,63,0.45)]">
-          — 02 — Infraestrutura
+      <section
+        id="privacidade"
+        className="border-t border-[rgba(11,27,63,0.10)] px-5 py-[88px] sm:px-8 lg:px-[72px]"
+      >
+        <div className="mx-auto max-w-[980px] text-center">
+          <div className="font-[family-name:var(--font-mono)] text-[11px] uppercase tracking-[0.18em] text-[rgba(11,27,63,0.45)]">
+            Segurança e privacidade
+          </div>
+
+          <h2
+            className="mx-auto my-5 max-w-[820px] font-bold leading-tight tracking-[-0.02em] text-[#0B1B3F]"
+            style={{ fontSize: "clamp(34px, 4.2vw, 56px)" }}
+          >
+            O dado médico fica protegido. O acesso fica{" "}
+            <span className="text-[#1E47FF]">comprovável.</span>
+          </h2>
+
+          <p className="mx-auto max-w-[720px] text-[15px] leading-[1.65] text-[rgba(11,27,63,0.62)] sm:text-[16px]">
+            A Elo.me não expõe prontuários, exames ou dados sensíveis em
+            registros públicos. O que fica registrado é a permissão de acesso:
+            quem solicitou, o que foi autorizado, por quanto tempo e com qual
+            finalidade.
+          </p>
         </div>
-        <h2
-          className="my-5 font-bold leading-tight tracking-[-0.02em] text-[#0B1B3F]"
-          style={{ fontSize: "clamp(36px, 4.2vw, 56px)" }}
-        >
-          Verificável <span className="text-[#1E47FF]">on-chain.</span>
-        </h2>
-        <Sparkles
-          className="mx-auto mt-3.5 size-14 text-[#1E47FF]"
-          style={{ filter: "drop-shadow(0 8px 18px rgba(30,71,255,0.25))" }}
-        />
+
+        <div className="mt-12 grid gap-3 md:grid-cols-3">
+          {protectionCards.map((item) => {
+            const Icon = item.icon;
+
+            return (
+              <article
+                key={item.title}
+                className="border border-[rgba(11,27,63,0.10)] bg-white p-5 transition-all hover:-translate-y-1 hover:shadow-[0_20px_40px_-28px_rgba(11,27,63,0.28)]"
+              >
+                <div className="grid size-[38px] place-items-center rounded-[10px] bg-[#DCE6FF] text-[#1E47FF]">
+                  <Icon className="size-5" strokeWidth={1.7} />
+                </div>
+
+                <h3 className="mt-4 text-[18px] font-bold leading-tight tracking-[-0.01em] text-[#0B1B3F]">
+                  {item.title}
+                </h3>
+
+                <p className="mt-2 text-[13.5px] leading-[1.6] text-[rgba(11,27,63,0.62)]">
+                  {item.description}
+                </p>
+              </article>
+            );
+          })}
+        </div>
       </section>
 
-      <section className="border-t border-[rgba(11,27,63,0.10)] px-[72px] pb-[90px] pt-[70px]">
-        <header className="mb-10 flex flex-col items-end justify-between gap-10 sm:flex-row sm:items-end">
-          <h3
-            className="m-0 max-w-[720px] text-balance font-bold leading-[1.05] tracking-[-0.02em] text-[#0B1B3F]"
-            style={{ fontSize: "clamp(28px, 3vw, 44px)" }}
-          >
-            Trilha de auditoria pública, identidade{" "}
-            <span className="text-[#1E47FF]">privada.</span>
-          </h3>
-          <div className="text-right font-[family-name:var(--font-mono)] text-[11px] uppercase leading-[1.6] tracking-[0.14em] text-[rgba(11,27,63,0.45)]">
-            Powered by
-            <br />
-            <span className="text-[#0B1B3F]">Chainlink CRE</span>
-            <br />
-            Cross-chain runtime
+      <section className="border-t border-[rgba(11,27,63,0.10)] px-5 pb-[90px] pt-[70px] sm:px-8 lg:px-[72px]">
+        <header className="mb-10 grid gap-6 lg:grid-cols-[1fr_0.8fr] lg:items-end">
+          <div>
+            <p className="mb-4 font-[family-name:var(--font-mono)] text-[11px] uppercase tracking-[0.18em] text-[#1E47FF]">
+              O que acontece por trás
+            </p>
+
+            <h3
+              className="m-0 max-w-[760px] text-balance font-bold leading-[1.05] tracking-[-0.02em] text-[#0B1B3F]"
+              style={{ fontSize: "clamp(28px, 3vw, 44px)" }}
+            >
+              A plataforma separa conteúdo sensível de prova de autorização.
+            </h3>
           </div>
+
+          <p className="max-w-[460px] text-[15px] leading-[1.65] text-[rgba(11,27,63,0.62)] lg:ml-auto lg:text-right">
+            O conteúdo médico continua privado. A autorização
+            de acesso fica rastreável para que paciente e instituição tenham
+            confiança no processo.
+          </p>
         </header>
 
-        <div className="overflow-hidden rounded-[22px] border border-[rgba(11,27,63,0.10)] bg-white">
-          <div className="grid grid-cols-[90px_1.4fr_1fr_1fr_120px_110px] border-b border-[rgba(11,27,63,0.10)] bg-gradient-to-b from-[#F8FAFF] to-white px-5 py-3.5 font-[family-name:var(--font-mono)] text-[11px] uppercase tracking-[0.12em] text-[rgba(11,27,63,0.45)]">
-            <div>Tempo</div>
-            <div>Requisitante</div>
-            <div>Escopo</div>
-            <div>Hash</div>
+        <div className="overflow-hidden border border-[rgba(11,27,63,0.10)] bg-white">
+          <div className="hidden grid-cols-[1fr_1.35fr_1.35fr_120px] border-b border-[rgba(11,27,63,0.10)] bg-gradient-to-b from-[#F8FAFF] to-white px-5 py-3.5 font-[family-name:var(--font-mono)] text-[11px] uppercase tracking-[0.12em] text-[rgba(11,27,63,0.45)] md:grid">
+            <div>Elemento</div>
+            <div>O que fica protegido</div>
+            <div>O que fica registrado</div>
             <div>Status</div>
-            <div>Ação</div>
           </div>
-          {rows.map((r) => (
+
+          {privacyRows.map((row) => (
             <div
-              key={r.t}
-              className="grid grid-cols-[90px_1.4fr_1fr_1fr_120px_110px] items-center border-b border-[rgba(11,27,63,0.06)] px-5 py-4 text-[13.5px] last:border-b-0"
+              key={row.item}
+              className="grid gap-3 border-b border-[rgba(11,27,63,0.06)] px-5 py-4 text-[13.5px] last:border-b-0 md:grid-cols-[1fr_1.35fr_1.35fr_120px] md:items-center"
             >
-              <div className="font-[family-name:var(--font-mono)] text-xs text-[rgba(11,27,63,0.62)]">
-                {r.t}
+              <div className="font-semibold text-[#0B1B3F]">{row.item}</div>
+
+              <div className="text-[rgba(11,27,63,0.68)]">
+                <span className="mb-1 block font-[family-name:var(--font-mono)] text-[10px] uppercase tracking-[0.12em] text-[rgba(11,27,63,0.40)] md:hidden">
+                  O que fica protegido
+                </span>
+                {row.protected}
               </div>
-              <div className="font-semibold text-[#0B1B3F]">
-                {r.who}
-                <small className="block text-xs font-medium text-[rgba(11,27,63,0.45)]">{r.role}</small>
+
+              <div className="text-[rgba(11,27,63,0.68)]">
+                <span className="mb-1 block font-[family-name:var(--font-mono)] text-[10px] uppercase tracking-[0.12em] text-[rgba(11,27,63,0.40)] md:hidden">
+                  O que fica registrado
+                </span>
+                {row.registered}
               </div>
-              <div className="text-[#0B1B3F]">{r.scope}</div>
-              <div className="font-[family-name:var(--font-mono)] text-xs text-[#1E47FF]">{r.hash}</div>
+
               <div className="inline-flex items-center gap-1.5 font-[family-name:var(--font-mono)] text-[11px] uppercase tracking-[0.06em] text-[#0B1B3F]">
-                <span className={cn("size-[7px] rounded-full", pip[r.state])} />
-                {r.stateLabel}
+                <span
+                  className={cn("size-[7px] rounded-full", pip[row.state])}
+                />
+                {row.stateLabel}
               </div>
-              <a href="#" className="text-xs font-semibold text-[#1E47FF]">{r.action}</a>
             </div>
           ))}
         </div>

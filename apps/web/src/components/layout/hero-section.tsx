@@ -48,7 +48,7 @@ export function HeroSection() {
           className="mx-auto max-w-[1080px] text-balance font-bold leading-[1.02] tracking-[-0.025em] text-brand-navy"
           style={{ fontSize: "clamp(40px, 5.4vw, 76px)" }}
         >
-          Seus dados clínicos,
+          Seus dados médicos,
           <br />
           sob{" "}
           <span className="text-[var(--color-brand-blue)]">
@@ -58,28 +58,27 @@ export function HeroSection() {
         </h1>
 
         <p className="mx-auto mt-7 max-w-[640px] text-pretty text-[17px] leading-[1.55] text-text-muted">
-          A ELO.ME é a infraestrutura de identidade digital em saúde que devolve
-          ao paciente o controle total sobre quem acessa, quando acessa e por
-          quanto tempo — com auditoria verificável on-chain via Chainlink CRE.
+          A Elo.me é uma infraestrutura de consentimento e auditoria para dados de saúde,
+          onde pacientes controlam quais documentos médicos podem ser acessados, por quem, por quanto tempo e com qual finalidade.
         </p>
 
-        <div className="mt-9 inline-flex gap-3">
+        <div className="mt-9 inline-flex flex-col gap-3 sm:flex-row">
           <Button
             asChild
             className="rounded-full bg-[var(--color-brand-blue)] px-[22px] py-[14px] text-[15px] font-semibold text-white hover:bg-[#1638E0]"
           >
-            <Link href="#consentimento">
-              Criar identidade ELO <ArrowRight className="ml-2 size-3.5" />
+            <Link href="/auth/login">
+              Criar identidade <ArrowRight className="ml-2 size-3.5" />
             </Link>
           </Button>
 
-         <Button
-          asChild
-          variant="outline"
-          className="rounded-full border-border-subtle bg-transparent px-[22px] py-[14px] text-[15px] font-semibold text-brand-navy transition-colors hover:border-border-subtle hover:bg-[var(--color-background-card)] hover:text-[var(--color-text-primary)]"
-        >
-          <Link href="#contato">Falar com nosso time</Link>
-        </Button>
+          <Button
+            asChild
+            variant="outline"
+            className="rounded-full border-border-subtle bg-transparent px-[22px] py-[14px] text-[15px] font-semibold text-brand-navy transition-colors hover:border-border-subtle hover:bg-[var(--color-background-card)] hover:text-[var(--color-text-primary)]"
+          >
+            <Link href="#workflow">Ver demonstração</Link>
+          </Button>
         </div>
       </div>
     </section>

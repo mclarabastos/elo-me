@@ -15,10 +15,12 @@ const jetbrainsMono = JetBrains_Mono({
   variable: "--font-mono",
 });
 
-export const metadata: Metadata = {
-  title: "ELO.ME",
-  description:
-    "Identidade, consentimento e auditoria para dados de saúde na Web3.",
+export const metadata = {
+  title: "elo.me",
+  description: "Consentimento, privacidade e auditoria para dados médicos.",
+  icons: {
+    icon: "/images/elo.me_icon.png",
+  },
 };
 
 export default function RootLayout({
