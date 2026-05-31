@@ -1,0 +1,132 @@
+{
+  "version": 1,
+  "workflow": {
+    "name": "Elo.me Access Validator",
+    "description": "Validates patient consent via backend and records clinic access on Arbitrum Sepolia using Chainlink CRE",
+    "created": true
+  },
+  "nodes": [
+    {
+      "id": "trg_1780020843217_0",
+      "type": "appNode",
+      "position": { "x": 40, "y": 40 },
+      "data": {
+        "kind": "trigger.cron",
+        "name": "Consent Check",
+        "description": "Runs every 30 seconds to check consent status",
+        "scheduleType": "interval",
+        "intervalValue": 30,
+        "intervalUnit": "seconds",
+        "atHour": 9,
+        "atMinute": 0,
+        "daysOfWeek": [1],
+        "dayOfMonth": 1,
+        "timezone": "UTC",
+        "cronExpression": "*/30 * * * * *"
+      },
+      "width": 240,
+      "height": 103
+    },
+    {
+      "id": "web_1780020974132_1",
+      "type": "appNode",
+      "position": { "x": 340, "y": 190 },
+      "data": {
+        "kind": "website",
+        "name": "backend API",
+        "description": "Website API reference",
+        "websiteName": "backend API",
+        "apiUrls": [
+          "https://elo-me.onrender.com/external/access/validate?clinic_id=clinic_neurorio&doctor_id=doctor_ana&consent_id=consent_4a5a94e7&requested_scopes=allergies,medications"
+        ]
+      },
+      "width": 240,
+      "height": 125
+    },
+    {
+      "id": "cap_1780020974132_2",
+      "type": "appNode",
+      "position": { "x": 340, "y": 40 },
+      "data": {
+        "kind": "cap.http.get",
+        "name": "backend API",
+        "description": "Validates clinic consent via API",
+        "websiteName": "backend API",
+        "apiUrl": "https://elo-me.onrender.com/external/access/validate?clinic_id=clinic_neurorio&doctor_id=doctor_ana&consent_id=consent_4a5a94e7&requested_scopes=allergies,medications"
+      },
+      "width": 240,
+      "height": 103
+    },
+    {
+      "id": "sc_1780021118299_5",
+      "type": "appNode",
+      "position": { "x": 640, "y": 320 },
+      "data": {
+        "kind": "smartContract",
+        "name": "EloConsentRegistry",
+        "description": "Smart Contract reference",
+        "contractName": "EloConsentRegistry",
+        "events": [],
+        "functions": ["recordAccess"]
+      },
+      "width": 240,
+      "height": 127
+    },
+    {
+      "id": "cap_1780021118299_6",
+      "type": "appNode",
+      "position": { "x": 640, "y": 40 },
+      "data": {
+        "kind": "cap.evmWrite",
+        "name": "recordAccess",
+        "description": "Records clinic access decision on-chain",
+        "smartContractName": "EloConsentRegistry",
+        "functionName": "recordAccess",
+        "contractAddress": "0x5eD86192F0521f35C8b93BD1D774Aa32ADA0E444",
+        "chainSelector": "arbitrum-testnet-sepolia"
+      },
+      "width": 240,
+      "height": 147
+    }
+  ],
+  "edges": [
+    {
+      "id": "e_1780020974132_3",
+      "source": "trg_1780020843217_0",
+      "target": "cap_1780020974132_2",
+      "type": "smoothstep",
+      "data": { "kind": "callback" },
+      "className": "edge edge--callback"
+    },
+    {
+      "id": "e_1780020974132_4",
+      "source": "cap_1780020974132_2",
+      "target": "web_1780020974132_1",
+      "sourceHandle": "refSource",
+      "targetHandle": "refTarget",
+      "type": "straight",
+      "data": { "kind": "ref" },
+      "className": "edge edge--ref"
+    },
+    {
+      "id": "e_1780021118299_7",
+      "source": "cap_1780020974132_2",
+      "target": "cap_1780021118299_6",
+      "type": "smoothstep",
+      "data": { "kind": "callback" },
+      "className": "edge edge--callback"
+    },
+    {
+      "id": "e_1780021118299_8",
+      "source": "cap_1780021118299_6",
+      "target": "sc_1780021118299_5",
+      "sourceHandle": "refSource",
+      "targetHandle": "refTarget",
+      "type": "straight",
+      "data": { "kind": "ref" },
+      "className": "edge edge--ref"
+    }
+  ],
+  "selectedId": null,
+  "idCounter": 9
+}
