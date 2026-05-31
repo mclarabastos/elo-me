@@ -1,0 +1,44 @@
+from app.schemas.access_request import (
+    AccessRequestCreate,
+    AccessRequestResponse,
+    AccessRequestStatusUpdate,
+)
+from app.schemas.audit_log import AuditLogResponse
+from app.schemas.auth_identity import (
+    AuthIdentityCreate,
+    AuthIdentityResponse,
+    AuthIdentityRoleUpdate,
+    WalletSessionResponse,
+)
+from app.schemas.clinic import ClinicResponse
+from app.schemas.consent import (
+    ConsentApproveRequest,
+    ConsentResponse,
+    ConsentRevokeRequest,
+    ConsentVerifyResponse,
+)
+from app.schemas.doctor import DoctorResponse
+from app.schemas.medical_data import MedicalDataResponse
+from app.schemas.notification import NotificationResponse
+from app.schemas.user import UserResponse
+
+
+__all__ = [
+    "AccessRequestCreate",
+    "AccessRequestResponse",
+    "AccessRequestStatusUpdate",
+    "AuditLogResponse",
+    "AuthIdentityCreate",
+    "AuthIdentityResponse",
+    "AuthIdentityRoleUpdate",
+    "ClinicResponse",
+    "ConsentApproveRequest",
+    "ConsentResponse",
+    "ConsentRevokeRequest",
+    "ConsentVerifyResponse",
+    "DoctorResponse",
+    "MedicalDataResponse",
+    "NotificationResponse",
+    "UserResponse",
+    "WalletSessionResponse",
+]
