@@ -10,6 +10,10 @@
     "skipLibCheck": true,
     "types": ["node", "hardhat"]
   },
-  "include": ["./hardhat.config.ts", "./scripts", "./test", "./typechain-types"],
-  "files": ["./hardhat.config.ts"]
+  "include": [
+    "./hardhat.config.ts",
+    "./scripts/**/*.ts",
+    "./test/**/*.ts",
+    "./typechain-types/**/*.ts"
+  ]
 }
