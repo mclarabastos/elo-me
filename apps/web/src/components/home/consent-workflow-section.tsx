@@ -173,7 +173,7 @@ export function ConsentWorkflowSection() {
       <div className="relative mx-auto max-w-[1160px]">
         <div className="mx-auto max-w-[780px] text-center">
           <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-[#1E47FF]">
-            Como funciona
+            A Solução
           </p>
 
           <h2 className="mt-4 text-balance text-[34px] font-black leading-[0.98] tracking-[-0.055em] text-[#0B1B3F] sm:text-[46px] lg:text-[58px]">

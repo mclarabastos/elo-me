@@ -95,6 +95,14 @@ export type AccessRequestResponse = {
   updated_at: string;
 };
 
+export type AccessRequestsApiResponse =
+  | AccessRequestResponse[]
+  | {
+      value: AccessRequestResponse[];
+      Count?: number;
+      count?: number;
+    };
+
 export type ConsentApproveRequest = {
   access_request_id: string;
   allowed_scopes: MedicalScope[];
@@ -297,4 +305,79 @@ export type WalletSessionResponse = {
   created_at: string;
   updated_at: string;
   message: string;
+};
+
+export type NotificationStatus = "unread" | "read" | string;
+
+export type NotificationChannel = "platform" | "email" | "sms" | string;
+
+export type NotificationResponse = {
+  id: string;
+  recipient_identity_id: string;
+  recipient_role: UserRole;
+  patient_id: string;
+  clinic_id?: string | null;
+  doctor_id?: string | null;
+  title: string;
+  message: string;
+  type: string;
+  status: NotificationStatus;
+  related_access_request_id?: string | null;
+  channel: NotificationChannel;
+  created_at: string;
+  read_at?: string | null;
+};
+
+export type NotificationsApiResponse =
+  | NotificationResponse[]
+  | {
+      value: NotificationResponse[];
+      Count?: number;
+      count?: number;
+    };
+
+export type DemoNotifyPatientResponse = {
+  access_request: AccessRequestResponse;
+  notification: NotificationResponse;
+  uxCopy: string[];
+  nextSteps: string[];
+};
+
+export type BusinessPlanResponse = {
+  id: string;
+  name: string;
+  price?: string | number | null;
+  description?: string;
+  features?: string[];
+};
+
+export type BusinessModelResponse = {
+  title?: string;
+  description?: string;
+  plans?: BusinessPlanResponse[];
+  [key: string]: unknown;
+};
+
+export type MarketSizingResponse = {
+  [key: string]: unknown;
+};
+
+export type BreakEvenResponse = {
+  [key: string]: unknown;
+};
+
+export type PitchBusinessDataResponse = {
+  [key: string]: unknown;
+};
+
+export type UserJourneyRoutesResponse = {
+  [key: string]: unknown;
+};
+
+export type UserJourneyStorageMapResponse = {
+  [key: string]: unknown;
+};
+
+export type IntegrationBusinessContractResponse = {
+  [key: string]: unknown;
 };

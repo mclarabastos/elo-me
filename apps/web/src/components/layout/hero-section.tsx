@@ -58,8 +58,8 @@ export function HeroSection() {
         </h1>
 
         <p className="mx-auto mt-7 max-w-[640px] text-pretty text-[17px] leading-[1.55] text-text-muted">
-          A Elo.me é uma infraestrutura de consentimento e auditoria para dados de saúde,
-          onde pacientes controlam quais documentos médicos podem ser acessados, por quem, por quanto tempo e com qual finalidade.
+          A Elo.me ajuda pacientes, clínicas e profissionais de saúde a controlar, autorizar e registrar o acesso a
+          prontuários e documentos médicos, com consentimento claro, prazo definido e histórico verificável.
         </p>
 
         <div className="mt-9 inline-flex flex-col gap-3 sm:flex-row">

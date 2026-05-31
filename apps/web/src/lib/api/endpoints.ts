@@ -21,8 +21,17 @@
       `/patients/${patientId}/access-requests`,
   },
 
+  notifications: {
+    byIdentity: (identityId: string) => `/notifications/${identityId}`,
+
+    markAsRead: (notificationId: string) =>
+      `/notifications/${notificationId}/read`,
+  },
+
   accessRequests: {
     root: "/access-requests",
+
+    demoNotifyPatient: "/access-requests/demo-notify-patient",
 
     byId: (accessRequestId: string) =>
       `/access-requests/${accessRequestId}`,
@@ -74,7 +83,20 @@
     status: "/integration/status",
     frontendContract: "/integration/frontend-contract",
     creContract: "/integration/cre-contract",
+    businessContract: "/integration/business-contract",
     pitchScriptData: "/integration/pitch-script-data",
     authContract: "/integration/auth-contract",
+  },
+
+  userJourney: {
+    routes: "/user-journey/routes",
+    storageMap: "/user-journey/storage-map",
+  },
+
+  business: {
+    model: "/business/model",
+    marketSizing: "/business/market-sizing",
+    breakEven: "/business/break-even",
+    pitchBusinessData: "/business/pitch-business-data",
   },
 } as const;

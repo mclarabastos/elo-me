@@ -1,13 +1,16 @@
 ﻿import {
-  getFrontendAuditTimeline,
   getFrontendShareFlow,
+  getPatientAccessRequests,
 } from "@/lib/api";
 import {
   PatientPermissionsList,
   type AccessRequestRow,
 } from "@/components/patient/patient-permissions-list";
+import type { AccessRequestResponse } from "@/types/api";
 
 export const dynamic = "force-dynamic";
+
+const PATIENT_DEMO_ID = "patient_rose";
 
 function formatScope(scope: string) {
   const labels: Record<string, string> = {
@@ -22,57 +25,129 @@ function formatScope(scope: string) {
   return labels[scope] ?? scope;
 }
 
+function formatStatus(status: string): AccessRequestRow["status"] {
+  const normalizedStatus = status.toLowerCase();
+
+  if (
+    normalizedStatus === "approved" ||
+    normalizedStatus === "authorized" ||
+    normalizedStatus === "active"
+  ) {
+    return "approved";
+  }
+
+  if (
+    normalizedStatus === "denied" ||
+    normalizedStatus === "rejected" ||
+    normalizedStatus === "revoked"
+  ) {
+    return "denied";
+  }
+
+  return "pending";
+}
+
+function formatRequester(
+  request: AccessRequestResponse,
+  clinicName: string,
+  doctorName: string,
+) {
+  if (request.requester_type === "doctor") {
+    return doctorName;
+  }
+
+  if (request.requester_type === "clinic") {
+    return `${clinicName} · ${doctorName}`;
+  }
+
+  return `${clinicName} · ${doctorName}`;
+}
+
+function formatDuration(request: AccessRequestResponse) {
+  if ("duration_hours" in request && typeof request.duration_hours === "number") {
+    return `${request.duration_hours}h`;
+  }
+
+  if (
+    "durationHours" in request &&
+    typeof request.durationHours === "number"
+  ) {
+    return `${request.durationHours}h`;
+  }
+
+  return "24h";
+}
+
+function getRequestedScopes(request: AccessRequestResponse) {
+  if (
+    "requested_scopes" in request &&
+    Array.isArray(request.requested_scopes)
+  ) {
+    return request.requested_scopes;
+  }
+
+  if (
+    "requestedScopes" in request &&
+    Array.isArray(request.requestedScopes)
+  ) {
+    return request.requestedScopes;
+  }
+
+  return [];
+}
+
+function getCreatedAt(request: AccessRequestResponse) {
+  if ("created_at" in request && typeof request.created_at === "string") {
+    return request.created_at;
+  }
+
+  if ("createdAt" in request && typeof request.createdAt === "string") {
+    return request.createdAt;
+  }
+
+  return new Date().toISOString();
+}
+
+function mapAccessRequestToRow(
+  request: AccessRequestResponse,
+  clinicName: string,
+  doctorName: string,
+): AccessRequestRow {
+  const requestedScopes = getRequestedScopes(request);
+
+  return {
+    id: request.id,
+    requester: formatRequester(request, clinicName, doctorName),
+    requester_type: request.requester_type,
+    purpose: request.purpose,
+    scopes: requestedScopes.length
+      ? requestedScopes.map(formatScope).join(", ")
+      : "Escopos não informados",
+    requested_scopes: requestedScopes,
+    duration: formatDuration(request),
+    status: formatStatus(request.status),
+    created_at: getCreatedAt(request),
+  };
+}
+
 export default async function PatientPermissionsPage() {
-  const [shareFlow, auditTimeline] = await Promise.all([
+  const [shareFlow, accessRequests] = await Promise.all([
     getFrontendShareFlow(),
-    getFrontendAuditTimeline(),
+    getPatientAccessRequests(PATIENT_DEMO_ID),
   ]);
 
-  const accessRequestedEvent = auditTimeline.items.find(
-    (item) => item.type === "access_request"
-  );
-
-  const consentApprovedEvent = auditTimeline.items.find(
-    (item) => item.type === "consent"
-  );
-
-  const authorizedEvent = auditTimeline.items.find(
-    (item) => item.decision === "AUTHORIZED" || item.status === "authorized"
-  );
-
-  const recommendedScopes = shareFlow.shareableScopes
-    .filter((scope) => scope.recommended)
-    .map((scope) => formatScope(scope.category));
-
-  const requestedScopes = accessRequestedEvent?.requestedScopes?.length
-    ? accessRequestedEvent.requestedScopes.map(formatScope)
-    : recommendedScopes;
-
-  const status = authorizedEvent
-    ? "approved"
-    : consentApprovedEvent
-      ? "approved"
-      : accessRequestedEvent
-        ? "pending"
-        : "pending";
-
-  const createdAt =
-    accessRequestedEvent?.createdAt ??
-    consentApprovedEvent?.createdAt ??
-    new Date().toISOString();
-
-  const rows: AccessRequestRow[] = [
-    {
-      id: accessRequestedEvent?.id ?? "demo_share_request",
-      requester: `${shareFlow.availableClinic.name} · ${shareFlow.availableDoctor.name}`,
-      requester_type: "clinic",
-      purpose: shareFlow.defaultPurpose,
-      scopes: requestedScopes.join(", "),
-      duration: `${shareFlow.defaultDurationHours}h`,
-      status,
-      created_at: createdAt,
-    },
-  ];
+  const rows = accessRequests
+    .map((request) =>
+      mapAccessRequestToRow(
+        request,
+        shareFlow.availableClinic.name,
+        shareFlow.availableDoctor.name,
+      ),
+    )
+    .sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+    );
 
   return (
     <div className="space-y-[18px]">

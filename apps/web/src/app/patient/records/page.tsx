@@ -174,32 +174,10 @@ export default async function PatientRecordsPage() {
         </button>
       </section>
 
-      <section className="grid gap-[14px] lg:grid-cols-3">
-        <StatBlock
-          label="Categorias"
-          value={totalRecords}
-          helper="Dados médicos organizados por escopo"
-        />
-
-        <StatBlock
-          label="Disponíveis"
-          value={availableCount}
-          helper="Escopos prontos para consentimento"
-        />
-
-        <StatBlock
-          label="Alta sensibilidade"
-          value={highSensitivityCount}
-          helper="Dados que exigem atenção extra"
-        />
-      </section>
 
       <section className="border border-[var(--line)] bg-[var(--paper)]">
         <div className="flex flex-col justify-between gap-4 border-b border-[var(--line)] p-5 md:flex-row md:items-start">
           <div>
-            <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--ink-45)]">
-              Dados médicos
-            </p>
 
             <h2 className="mt-2 text-[22px] font-bold tracking-[-0.02em] text-[var(--navy)]">
               Categorias do prontuário

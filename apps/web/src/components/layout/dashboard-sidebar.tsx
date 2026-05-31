@@ -122,7 +122,7 @@ const NAV_ITEMS: Record<DashboardRole, NavItem[]> = {
       icon: <User className="h-4 w-4" strokeWidth={1.6} />,
     },
     {
-      href: "#notifications",
+      href: "/patient/notifications",
       label: "Notificações",
       icon: <Bell className="h-4 w-4" strokeWidth={1.6} />,
       isSeparator: true,
@@ -161,7 +161,7 @@ const NAV_ITEMS: Record<DashboardRole, NavItem[]> = {
       icon: <Stethoscope className="h-4 w-4" strokeWidth={1.6} />,
     },
     {
-      href: "#notifications",
+      href: "/doctor/notifications",
       label: "Notificações",
       icon: <Bell className="h-4 w-4" strokeWidth={1.6} />,
       isSeparator: true,
@@ -200,10 +200,15 @@ const NAV_ITEMS: Record<DashboardRole, NavItem[]> = {
       icon: <ScrollText className="h-4 w-4" strokeWidth={1.6} />,
     },
     {
+      href: "/clinic/notifications",
+      label: "Notificações",
+      icon: <Bell className="h-4 w-4" strokeWidth={1.6} />,
+      isSeparator: true,
+    },
+    {
       href: "#help",
       label: "Ajuda",
       icon: <HelpCircle className="h-4 w-4" strokeWidth={1.6} />,
-      isSeparator: true,
     },
   ],
 };
