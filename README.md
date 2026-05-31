@@ -2,7 +2,7 @@
 
 Prontuário médico portátil com consentimento verificável, privacidade seletiva e auditoria em blockchain.
 
-O paciente paga por consultas e exames, mas raramente tem controle real sobre seu próprio histórico. Esse histórico fica preso em sistemas fechados, papéis e clínicas, e quando ele muda de médico, precisa reconstruir tudo do zero.
+O paciente paga por consultas e exames, mas raramente tem controle real sobre seu próprio histórico. Esse histórico fica preso em sistemas fechados, papéis e clínicas — e quando ele muda de médico, precisa reconstruir tudo do zero.
 
 O Elo.me resolve isso: o paciente possui seu histórico, escolhe o que compartilhar, com quem e por quanto tempo. O médico acessa o que é clinicamente relevante. Nada além disso.
 
@@ -10,11 +10,12 @@ O Elo.me resolve isso: o paciente possui seu histórico, escolhe o que compartil
 
 ## Demo
 
-| Recurso                     | URL                                                                                                                    |
-| --------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| Frontend                    | _em breve_                                                                                                             |
-| Backend API                 | https://elo-me.onrender.com                                                                                            |
-| API Docs (Swagger)          | https://elo-me.onrender.com/docs                                                                                       |
+| Recurso | URL |
+| ------- | --- |
+| Frontend | https://elo-me-web.vercel.app |
+| Backend API | https://elo-me.onrender.com |
+| API Docs (Swagger) | https://elo-me.onrender.com/docs |
+| Status CRE | https://elo-me.onrender.com/frontend/cre-status |
 | Contrato EloConsentRegistry | [`0x5eD8...0E444`](https://sepolia.arbiscan.io/address/0x5eD86192F0521f35C8b93BD1D774Aa32ADA0E444) na Arbitrum Sepolia |
 
 ---
@@ -29,18 +30,31 @@ Arquitetura híbrida off-chain / on-chain:
 
 O prontuário real nunca vai para a blockchain. Apenas a prova de que ele existe — e que o acesso foi ou não autorizado.
 
+### Contrato EloConsentRegistry
+
+O contrato **não armazena dados médicos reais**. Ele funciona como um cartório on-chain para provas, consentimentos e eventos de auditoria.
+
+**O que vai on-chain:** hashes de paciente, clínica, médico, consentimento e escopos; status de consentimento; eventos de auditoria.
+
+**O que nunca vai on-chain:** prontuário, CPF, diagnóstico, laudo, alergias, medicamentos ou qualquer dado médico sensível.
+
+| Contrato | Endereço | Rede |
+| -------- | -------- | ---- |
+| EloConsentRegistry | `0x5eD86192F0521f35C8b93BD1D774Aa32ADA0E444` | Arbitrum Sepolia |
+| CRE Forwarder | `0x5547E43EF39aD62668005aA861Db8556564cEc09` | Arbitrum Sepolia |
+
 ---
 
 ## Stack
 
-| Camada         | Tecnologia                                              |
-| -------------- | ------------------------------------------------------- |
-| Frontend       | Next.js + React + TypeScript + Tailwind CSS + shadcn/ui |
-| Backend        | FastAPI + Python + SQLAlchemy                           |
-| Banco de dados | SQLite (demo) / PostgreSQL (produção)                   |
-| Armazenamento  | IPFS / Pinata                                           |
-| Orquestração   | Chainlink CRE                                           |
-| Blockchain     | Arbitrum Sepolia (EVM)                                  |
+| Camada | Tecnologia |
+| ------ | ---------- |
+| Frontend | Next.js + React + TypeScript + Tailwind CSS + shadcn/ui |
+| Backend | FastAPI + Python + SQLAlchemy |
+| Banco de dados | SQLite (demo) / PostgreSQL (produção) |
+| Armazenamento | IPFS / Pinata |
+| Orquestração | Chainlink CRE |
+| Blockchain | Arbitrum Sepolia (EVM) |
 
 ---
 
@@ -48,18 +62,18 @@ O prontuário real nunca vai para a blockchain. Apenas a prova de que ele existe
 
 Fluxo completo de segunda opinião médica com consentimento seletivo:
 
-| #   | Etapa                                               |
-| --- | --------------------------------------------------- |
-| 1   | Paciente cria identidade na plataforma              |
-| 2   | Clínica envia documento médico                      |
-| 3   | Documento é criptografado e armazenado off-chain    |
-| 4   | Hash do documento é registrado on-chain             |
-| 5   | Nova clínica solicita acesso ao histórico           |
-| 6   | Paciente aprova acesso parcial                      |
-| 7   | CRE verifica se a clínica/profissional está ativo   |
-| 8   | CRE verifica consentimento on-chain e valida escopo |
-| 9   | Acesso liberado apenas para os dados autorizados    |
-| 10  | Evento de auditoria registrado on-chain             |
+| # | Etapa |
+| - | ----- |
+| 1 | Paciente cria identidade na plataforma |
+| 2 | Clínica envia documento médico |
+| 3 | Documento é criptografado e armazenado off-chain |
+| 4 | Hash do documento é registrado on-chain |
+| 5 | Nova clínica solicita acesso ao histórico |
+| 6 | Paciente aprova acesso parcial |
+| 7 | CRE verifica se a clínica/profissional está ativo via `GET /external/access/validate` |
+| 8 | CRE verifica consentimento on-chain e valida escopo |
+| 9 | Acesso liberado apenas para os dados autorizados |
+| 10 | Evento de auditoria registrado on-chain |
 
 > ZK Proofs estão fora do escopo do MVP. O foco é o fluxo CRE funcional com consentimento granular verificável.
 
@@ -118,8 +132,8 @@ cre workflow simulate . --target=staging-settings
 
 ```env
 # Frontend
-NEXT_PUBLIC_API_URL=
-NEXT_PUBLIC_APP_URL=
+NEXT_PUBLIC_API_URL=https://elo-me.onrender.com
+NEXT_PUBLIC_APP_URL=https://elo-me-web.vercel.app
 
 # Backend
 DATABASE_URL=
@@ -135,22 +149,22 @@ PINATA_GATEWAY_URL=
 # Chainlink / Web3
 CRE_ETH_PRIVATE_KEY=
 RPC_URL=
-CHAIN_ID=
-CONTRACT_ADDRESS=
+CHAIN_ID=421614
+CONTRACT_ADDRESS=0x5eD86192F0521f35C8b93BD1D774Aa32ADA0E444
 ```
 
 ---
 
 ## Scripts
 
-| Comando         | O que faz                |
-| --------------- | ------------------------ |
-| `pnpm dev`      | Sobe o ambiente completo |
-| `pnpm dev:web`  | Apenas o frontend        |
-| `pnpm dev:api`  | Apenas o backend         |
-| `pnpm build`    | Build de produção        |
-| `pnpm lint`     | Lint geral               |
-| `pnpm test:api` | Testes do backend        |
+| Comando | O que faz |
+| ------- | --------- |
+| `pnpm dev` | Sobe o ambiente completo |
+| `pnpm dev:web` | Apenas o frontend |
+| `pnpm dev:api` | Apenas o backend |
+| `pnpm build` | Build de produção |
+| `pnpm lint` | Lint geral |
+| `pnpm test:api` | Testes do backend |
 
 ---
 
@@ -160,19 +174,19 @@ CONTRACT_ADDRESS=
 - O `packages/design-system` é um scaffold ainda não integrado ao frontend.
 - Os testes do backend (`tests/`) são placeholders — a cobertura real está no fluxo de demo via Swagger.
 - O banco de dados usa SQLite em vez de PostgreSQL para facilitar o deploy de demo.
-- O frontend não tem autenticação real — as identidades são fixas para a demo (`auth_patient_rose_demo`, etc.).
+- O frontend não tem autenticação real — as identidades são fixas para a demo.
 
 ---
 
 ## Deploy
 
-| Serviço       | Plataforma                                     |
-| ------------- | ---------------------------------------------- |
-| Frontend      | Vercel                                         |
-| Backend       | Render                                         |
-| Banco         | SQLite (demo) / Neon ou Supabase para produção |
-| Storage       | Pinata / IPFS                                  |
-| Workflows CRE | Ambiente Chainlink CRE                         |
+| Serviço | Plataforma |
+| ------- | ---------- |
+| Frontend | Vercel |
+| Backend | Render |
+| Banco | SQLite (demo) / Neon ou Supabase para produção |
+| Storage | Pinata / IPFS |
+| Workflows CRE | Ambiente Chainlink CRE |
 
 ---
 
