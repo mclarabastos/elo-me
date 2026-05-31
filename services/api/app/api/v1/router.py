@@ -3,12 +3,15 @@ from fastapi import APIRouter
 from app.api.v1.routes import access_requests
 from app.api.v1.routes import audit_logs
 from app.api.v1.routes import auth
+from app.api.v1.routes import business
 from app.api.v1.routes import clinics, doctors, patients
 from app.api.v1.routes import consents
 from app.api.v1.routes import demo
 from app.api.v1.routes import external
 from app.api.v1.routes import frontend
 from app.api.v1.routes import integration
+from app.api.v1.routes import notifications
+from app.api.v1.routes import user_journey
 from app.api.v1.routes import users
 
 
@@ -24,6 +27,7 @@ api_router.include_router(
 )
 api_router.include_router(audit_logs.router, tags=["audit-logs"])
 api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
+api_router.include_router(business.router, prefix="/business", tags=["business"])
 api_router.include_router(consents.router, prefix="/consents", tags=["consents"])
 api_router.include_router(demo.router, prefix="/demo", tags=["demo"])
 api_router.include_router(external.router, prefix="/external", tags=["external"])
@@ -32,6 +36,16 @@ api_router.include_router(
     integration.router,
     prefix="/integration",
     tags=["integration"],
+)
+api_router.include_router(
+    notifications.router,
+    prefix="/notifications",
+    tags=["notifications"],
+)
+api_router.include_router(
+    user_journey.router,
+    prefix="/user-journey",
+    tags=["user-journey"],
 )
 api_router.include_router(users.router, prefix="/users", tags=["users"])
 

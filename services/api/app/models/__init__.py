@@ -5,6 +5,7 @@ from app.models.clinic import Clinic
 from app.models.consent import Consent
 from app.models.doctor import Doctor
 from app.models.medical_data import MedicalData
+from app.models.notification import Notification
 from app.models.user import User
 
 
@@ -16,5 +17,6 @@ __all__ = [
     "Consent",
     "Doctor",
     "MedicalData",
+    "Notification",
     "User",
 ]
